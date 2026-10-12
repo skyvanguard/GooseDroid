@@ -32,7 +32,7 @@ public final class GooseNotes {
     private static final String BYTE_ORDER_MARK = "﻿";
     private static final int MAX_NOTE_CHARS = 400;
 
-    /** Notas incluidas por idioma. zalo.txt queda afuera: es un enlace con un teléfono. */
+    /** Notas incluidas por idioma. */
     private static final String[] SPANISH_NOTES = {
         "soy ganso.txt", "la paz nunca.txt", "lista de tareas.txt",
         "rutina de la mañana.txt", "sabiduria.txt", "dificil escribir.txt", "gooseASCII1.txt",
