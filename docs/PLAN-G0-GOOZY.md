@@ -82,3 +82,38 @@ Son unas 280 referencias en `GooseAI`, `GoosePhysics`, `GooseRig`, `GooseRendere
 
 - `LICENSE` propio;
 - repo nuevo con historial limpio.
+
+## Estado al 2026-10-11 (G0b hecho)
+
+Commits `9179ab9` y `ae54e2c` en la rama `goozy`.
+
+### Cuerpo nuevo (`engine/body/`)
+
+- **Qué es.** `GooseModel` (Java puro, con tests) y `GooseBodyPainter` reemplazan el rig, el dibujo del cuerpo y el solver de patas.
+- **Vista y geometría.** Vista tres cuartos con un solo sistema de coordenadas. La silueta es suave y tiene un solo contorno, y el cuello es un tubo.
+- **Animación.** Caminata por fases con pisadas. Ojos expresivos (`HAPPY`, `JOY`, `LOVE`…), mirada, parpadeo y posturas.
+- **Formas propias.** Huevo, pollito y pato tienen su propia forma.
+- **Tacto.** Las zonas táctiles coinciden con lo dibujado.
+
+### Tareas propias
+
+- Paseo, buscar nota y correr embarrado.
+- Se eliminan la tarea del mouse y las claves heredadas de `config.ini` y del panel de configuración.
+
+### Verificación
+
+- 336 tests en verde.
+- `tools/smoke.sh` OK.
+- Revisión de código aplicada.
+- Capturas en el emulador del huevo, el pollito y el adulto, más una prueba de arrastre.
+
+### Lo que queda heredado
+
+- 83 líneas coinciden con el original (antes 314), casi todas boilerplate de Android.
+- No queda ningún identificador de la estructura original.
+
+### Pendiente (decisión del dueño)
+
+- `LICENSE`: se propone Apache-2.0.
+- Repo nuevo con historial limpio, o reescritura del actual.
+- Spike de Laya (L0): bloqueado porque esta red corta el TLS hacia huggingface.co.
