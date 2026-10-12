@@ -6,6 +6,9 @@ import android.content.*;
 import android.graphics.*;
 import com.skyvanguard.goozy.*;
 import com.skyvanguard.goozy.core.*;
+import com.skyvanguard.goozy.engine.body.BodyState;
+import com.skyvanguard.goozy.engine.body.GooseModel;
+import com.skyvanguard.goozy.engine.body.Species;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -231,7 +234,9 @@ public class TheGoose implements
     private static GooseAI ai;
     private static GooseRenderer renderer;
     private static GooseTouchHandler touchHandler;
-    private static GooseRig rig;
+    private static GooseModel body;
+    private static final float[] stepBuffer = new float[4];
+    private static final float MIN_SMALL_STAGE_SCALE = 2.4f;
     private static GooseBehaviorTree behaviorTree;
 
     // ============== THOUGHT SYSTEM ==============
@@ -291,8 +296,6 @@ public class TheGoose implements
     public static int EyeColor = 0xFF000000;
     private static final int DEFAULT_BODY_COLOR = 0xFFFFFFFF;
     public static int BodyColor = DEFAULT_BODY_COLOR;
-    private static final float BASE_TOUCH_RADIUS = 45f;
-    private static final float MIN_TOUCH_RADIUS = 40f;
 
     // ============== CONFIGURABLE VALUES ==============
 
@@ -439,8 +442,8 @@ public class TheGoose implements
         touchHandler.setCallback(instance);
         touchHandler.setGestureListener(instance);
 
-        // Rig
-        rig = new GooseRig();
+        // Cuerpo
+        body = new GooseModel();
 
         // Store initial position
         lastPosition = physics.getPosition();
@@ -527,7 +530,7 @@ public class TheGoose implements
         ai = null;
         renderer = null;
         touchHandler = null;
-        rig = null;
+        body = null;
         canvas = null;
     }
 
@@ -622,9 +625,23 @@ public class TheGoose implements
         }
     }
 
-    /** Radio, en unidades de mundo, dentro del cual un toque cuenta como sobre el ganso. */
-    public static float getTouchRadius() {
-        return Math.max(MIN_TOUCH_RADIUS, BASE_TOUCH_RADIUS * DrawScale);
+    /** true si el punto (mundo) cae sobre alguna parte del ganso. */
+    public static boolean isOnGoose(float x, float y) {
+        return getBodyZone(x, y) != BodyState.Zone.NONE;
+    }
+
+    /** Parte del cuerpo bajo el punto (mundo). */
+    public static BodyState.Zone getBodyZone(float x, float y) {
+        return body != null ? body.zoneAt(x, y) : BodyState.Zone.NONE;
+    }
+
+    /** Centro de lo que ocupa el ganso en pantalla, en unidades de mundo. */
+    public static float getBodyCenterX() {
+        return body != null ? (body.minX + body.maxX) * 0.5f : getGoosePos().x;
+    }
+
+    public static float getBodyCenterY() {
+        return body != null ? (body.minY + body.maxY) * 0.5f : getGoosePos().y;
     }
 
     public static boolean isMiniGamePlaying() {
@@ -787,8 +804,7 @@ public class TheGoose implements
             checkAchievement(Achievement.SPEEDSTER, 1);
         }
 
-        // Update rig
-        updateRig();
+        updateBody();
 
         // Process event queue
         processEvents();
@@ -839,85 +855,71 @@ public class TheGoose implements
         }
     }
 
-    private static void updateRig() {
-        // Update neck lerp
-        int extendNeck = (ai.isOverrideExtendNeck() || physics.getCurrentSpeed() >= 200f) ? 1 : 0;
-        float neckLerp = MathUtil.lerp(rig.getNeckLerpPercent(), (float) extendNeck, 0.075f);
-        rig.setNeckLerpPercent(neckLerp);
+    private static void updateBody() {
+        if (body == null) return;
+        body.species = currentSpecies();
+        // El huevo y el pollito ya son chicos por forma: no se achican más que esto
+        body.scale = body.species == Species.EGG || body.species == Species.CHICK
+                ? Math.max(DrawScale, MIN_SMALL_STAGE_SCALE) : DrawScale;
+        updateBodyFromState();
 
-        // Update expressions and poses
-        updateRigFromState();
+        boolean extendNeck = ai.isOverrideExtendNeck() || physics.getCurrentSpeed() >= 200f;
+        Vec2 pos = physics.getPosition();
+        body.update(Time.deltaTime, pos.x, pos.y, physics.getDirection(),
+                physics.getVerticalPosition(), extendNeck ? 1f : 0f, 0f);
+
+        int steps = body.pollSteps(stepBuffer);
+        for (int i = 0; i < steps; i++) {
+            physics.stampFootprint(stepBuffer[i * 2], stepBuffer[i * 2 + 1]);
+        }
     }
 
-    private static void updateRigFromState() {
-        if (!petModeEnabled || rig == null) return;
+    private static Species currentSpecies() {
+        com.skyvanguard.goozy.GooseEvolution.Stage stage =
+                com.skyvanguard.goozy.GooseEvolution.getCurrentStage();
+        if (stage == com.skyvanguard.goozy.GooseEvolution.Stage.EGG) return Species.EGG;
+        if (stage == com.skyvanguard.goozy.GooseEvolution.Stage.HATCHLING) return Species.CHICK;
+        switch (PetAppearance.get().creatureType) {
+            case 1: return Species.DUCK;
+            case 2: return Species.CHICK;
+            default: return Species.GOOSE;
+        }
+    }
 
-        GooseTasks.GooseTask task = ai.getCurrentTask();
-
-        switch (task) {
-            case Sleeping:
-                rig.setPose(GooseRig.Pose.SLEEPING);
-                rig.setExpression(GooseRig.Expression.SLEEPY);
-                break;
-            case Eating:
-                rig.setPose(GooseRig.Pose.EATING);
-                rig.setExpression(GooseRig.Expression.HAPPY);
-                break;
+    private static void updateBodyFromState() {
+        if (!petModeEnabled) {
+            body.pose = BodyState.Pose.NORMAL;
+            body.expression = BodyState.Expression.NEUTRAL;
+            return;
+        }
+        switch (ai.getCurrentTask()) {
+            case Sleeping: setLook(BodyState.Pose.SLEEPING, BodyState.Expression.SLEEPY); break;
+            case Eating: setLook(BodyState.Pose.EATING, BodyState.Expression.JOY); break;
             case Playing:
-                rig.setPose(GooseRig.Pose.EXCITED);
-                rig.setExpression(GooseRig.Expression.HAPPY);
-                break;
-            case Sad:
-                rig.setPose(GooseRig.Pose.RELAXED);
-                rig.setExpression(GooseRig.Expression.SAD);
-                break;
-            case Happy:
-                rig.setPose(GooseRig.Pose.EXCITED);
-                rig.setExpression(GooseRig.Expression.HAPPY);
-                break;
-            case Seeking:
-                rig.setPose(GooseRig.Pose.ALERT);
-                rig.setExpression(GooseRig.Expression.SURPRISED);
-                break;
-            case BeingPetted:
-                rig.setPose(GooseRig.Pose.RELAXED);
-                rig.setExpression(GooseRig.Expression.LOVE);
-                break;
-            case BeingDragged:
-                rig.setPose(GooseRig.Pose.SCARED);
-                rig.setExpression(GooseRig.Expression.SURPRISED);
-                break;
-            case TrackMud:
-                rig.setPose(GooseRig.Pose.EXCITED);
-                rig.setExpression(GooseRig.Expression.HAPPY);
-                break;
-            default:
-                updateRigFromMood();
-                break;
+            case TrackMud: setLook(BodyState.Pose.EXCITED, BodyState.Expression.JOY); break;
+            case Happy: setLook(BodyState.Pose.EXCITED, BodyState.Expression.HAPPY); break;
+            case Sad: setLook(BodyState.Pose.RELAXED, BodyState.Expression.SAD); break;
+            case Seeking: setLook(BodyState.Pose.ALERT, BodyState.Expression.SURPRISED); break;
+            case BeingPetted: setLook(BodyState.Pose.RELAXED, BodyState.Expression.LOVE); break;
+            case BeingDragged: setLook(BodyState.Pose.SCARED, BodyState.Expression.SURPRISED); break;
+            default: setLook(BodyState.Pose.NORMAL, expressionFromMood()); break;
         }
     }
 
-    private static void updateRigFromMood() {
-        PetNeeds.MoodState mood = PetNeeds.get().getMoodState();
-        switch (mood) {
-            case HAPPY:
-                rig.setExpression(GooseRig.Expression.HAPPY);
-                break;
+    private static void setLook(BodyState.Pose pose, BodyState.Expression expression) {
+        body.pose = pose;
+        body.expression = expression;
+    }
+
+    private static BodyState.Expression expressionFromMood() {
+        switch (PetNeeds.get().getMoodState()) {
+            case HAPPY: return BodyState.Expression.HAPPY;
+            case TIRED: return BodyState.Expression.SLEEPY;
             case SAD:
-                rig.setExpression(GooseRig.Expression.SAD);
-                break;
-            case TIRED:
-                rig.setExpression(GooseRig.Expression.SLEEPY);
-                break;
             case HUNGRY:
-            case SICK:
-                rig.setExpression(GooseRig.Expression.SAD);
-                break;
-            default:
-                rig.setExpression(GooseRig.Expression.NEUTRAL);
-                break;
+            case SICK: return BodyState.Expression.SAD;
+            default: return BodyState.Expression.NEUTRAL;
         }
-        rig.setPose(GooseRig.Pose.NORMAL);
     }
 
     // ============== RENDER ==============
@@ -934,7 +936,7 @@ public class TheGoose implements
      * garantizado que sea el mismo objeto entre frames.
      */
     /**
-     * Actualiza el estado de dibujo (rig, partículas, colores). Una vez por frame,
+     * Actualiza el estado de dibujo (partículas, colores). Una vez por frame,
      * antes de dibujar cualquier capa.
      */
     public static void PrepareFrame() {
@@ -942,7 +944,7 @@ public class TheGoose implements
 
         applyEasterEggEffects();
         applyColors();
-        renderer.updateFrame(physics, rig, ai, petModeEnabled);
+        renderer.updateFrame(physics, ai, petModeEnabled);
         isFramePrepared = true;
     }
 
@@ -963,7 +965,7 @@ public class TheGoose implements
             GooseNotes.render(canvas);
         }
 
-        renderer.render(canvas, layer, physics, rig, touchHandler, ai, petModeEnabled,
+        renderer.render(canvas, layer, physics, body, touchHandler, ai, petModeEnabled,
                 screenWidth, screenHeight);
 
         if (layer == GooseRenderer.Layer.WORLD) {
@@ -1739,8 +1741,8 @@ public class TheGoose implements
         return ai;
     }
 
-    public static GooseRig getRig() {
-        return rig;
+    public static GooseModel getBody() {
+        return body;
     }
 
     public static Statistics getStatistics() {

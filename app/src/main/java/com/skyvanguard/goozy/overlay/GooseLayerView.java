@@ -116,14 +116,7 @@ public class GooseLayerView extends View {
         float worldX = toWorldX(event, 0);
         float worldY = toWorldY(event, 0);
 
-        boolean isOnGoose = false;
-        Vec2 goosePos = TheGoose.getGoosePos();
-        if (goosePos != null) {
-            float dx = worldX - goosePos.x;
-            float dy = worldY - goosePos.y;
-            float radius = TheGoose.getTouchRadius();
-            isOnGoose = dx * dx + dy * dy <= radius * radius;
-        }
+        boolean isOnGoose = TheGoose.isOnGoose(worldX, worldY);
         if (!isOnGoose && !TheGoose.isMiniGamePlaying()) {
             return false;
         }

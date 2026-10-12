@@ -54,7 +54,7 @@ public class GooseOverlayService extends Service implements GooseLayerView.Host 
     private static final int NOTIFICATION_ID = 4201;
 
     /** Medio lado del cuerpo del ganso, en unidades de mundo por unidad de DrawScale. */
-    private static final float GOOSE_HALF_EXTENT_UNITS = 45f;
+    private static final float GOOSE_HALF_EXTENT_UNITS = 22f;
     /** Margen de la ventana del ganso alrededor del cuerpo, en píxeles. */
     private static final int GOOSE_WINDOW_MARGIN_PX = 48;
     /** Fracción del margen que el ganso puede recorrer antes de recentrar la ventana. */
@@ -350,8 +350,9 @@ public class GooseOverlayService extends Service implements GooseLayerView.Host 
         if (pos == null || gooseView == null) return;
 
         int size = computeGooseWindowSize();
-        int centerX = getWorldOriginX() + Math.round(pos.x * TheGoose.WorldScale);
-        int centerY = getWorldOriginY() + Math.round(pos.y * TheGoose.WorldScale);
+        // Centrada en lo que se dibuja (el cuerpo sube desde el punto de suelo)
+        int centerX = getWorldOriginX() + Math.round(TheGoose.getBodyCenterX() * TheGoose.WorldScale);
+        int centerY = getWorldOriginY() + Math.round(TheGoose.getBodyCenterY() * TheGoose.WorldScale);
 
         int windowCenterX = gooseParams.x + gooseParams.width / 2;
         int windowCenterY = gooseParams.y + gooseParams.height / 2;

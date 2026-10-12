@@ -334,7 +334,7 @@ public class GooseTouchHandler {
         float dist = Vec2.dist(goosePos, touchPos);
 
         // Check if touching the goose
-        if (dist < Math.max(HIT_RADIUS, TheGoose.getTouchRadius())) {
+        if (dist < HIT_RADIUS || TheGoose.isOnGoose(x, y)) {
             isTouching = true;
             touchStartPos = touchPos;
             lastTouchPos = touchPos;
@@ -583,6 +583,16 @@ public class GooseTouchHandler {
     }
 
     private TouchZone determineTouchZone(Vec2 touchPos, Vec2 goosePos) {
+        com.skyvanguard.goozy.engine.body.BodyState.Zone zone =
+                TheGoose.getBodyZone(touchPos.x, touchPos.y);
+        if (zone != com.skyvanguard.goozy.engine.body.BodyState.Zone.NONE) {
+            return TouchZone.valueOf(zone.name());
+        }
+        return legacyTouchZone(touchPos, goosePos);
+    }
+
+    /** Respaldo cuando el dedo quedó fuera del dibujo (por ejemplo, al arrastrar). */
+    private TouchZone legacyTouchZone(Vec2 touchPos, Vec2 goosePos) {
         float relativeY = touchPos.y - goosePos.y;
         float relativeX = touchPos.x - goosePos.x;
         float gooseDir = callback != null ? callback.getDirection() : 0f;
