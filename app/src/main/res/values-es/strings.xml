@@ -32,7 +32,7 @@
     <string name="OverlayChannelName">Ganso en pantalla</string>
     <string name="OverlayChannelDescription">Mantiene al ganso en pantalla</string>
     <string name="OverlayNotificationTitle">El ganso anda suelto</string>
-    <string name="OverlayNotificationText">Tocá para abrir GooseDroid</string>
+    <string name="OverlayNotificationText">Tocá para abrir Goozy</string>
     <string name="OverlayNotificationStop">Guardar</string>
     <string name="BrainUseGpu">Usar la GPU</string>
     <string name="BrainUseGpuHint">En algunos teléfonos es más rápida y en otros más lenta. Probá las dos.</string>

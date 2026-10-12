@@ -1,6 +1,5 @@
 <resources>
-    <!-- 已有内容 -->
-    <string name="app_name">GooseDroid</string>
+    <string name="app_name">Goozy</string>
     <string name="Config">Config</string>
     <string name="EnableMods">EnableMods</string>
     <string name="SilenceSounds">SilenceSounds</string>
@@ -15,8 +14,8 @@
     <string name="MaxWanderingTimeSeconds">MaxWanderingTimeSeconds</string>
     <string name="FirstWanderTimeSeconds">FirstWanderTimeSeconds</string>
     <string name="DrawSize">DrawSize</string>
-    <string name="GooseDroidEnable">GooseDroid Enable</string>
-    <string name="GooseDroidDisable">GooseDroid Disable</string>
+    <string name="GoozyEnabled">Goozy is out</string>
+    <string name="GoozyDisabled">Goozy went to sleep</string>
     <string name="PleaseEnableFloatingWindowPermission">Please enable the floating window permission</string>
     <string name="Running">Running</string>
     <string name="ConfigFilePath">Config File Path</string>
@@ -29,7 +28,7 @@
     <string name="Confirm">Confirm</string>
     <string name="Cancel">Cancel</string>
     <string name="Copy">Copy</string>
-    <string name="AboutText">by:\\ncaofangkuai\\nYouTube:@caofangkuai\\nBiliBili:space.bilibili.com/3546724471671510\\nCookieBox\\nYoutube:@CookieBoxCHN\\nBiliBili:space.bilibili.com/648318676\\nGithub:github.com/caofangkuai/GooseDroid</string>
+    <string name="AboutText">Goozy: a chaotic, caring goose that lives on your screen.\n\nMade by skyvanguard.\ngithub.com/skyvanguard</string>
     <string name="Update">Update</string>
 
     <!-- Pet Mode Strings -->
@@ -73,7 +72,7 @@
     <string name="OverlayChannelName">Goose on screen</string>
     <string name="OverlayChannelDescription">Keeps the goose on screen</string>
     <string name="OverlayNotificationTitle">The goose is loose</string>
-    <string name="OverlayNotificationText">Tap to open GooseDroid</string>
+    <string name="OverlayNotificationText">Tap to open Goozy</string>
     <string name="OverlayNotificationStop">Put away</string>
     <string name="BrainOpen">Brain: talk, memory and diary</string>
     <string name="BrainTitle">Goose brain</string>

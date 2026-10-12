@@ -8,5 +8,5 @@
     android:initialLayout="@layout/pet_widget"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
-    android:previewImage="@drawable/ic_launcher"
+    android:previewImage="@mipmap/ic_launcher"
     android:description="@string/widget_description" />

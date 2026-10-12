@@ -22,11 +22,11 @@ if (keystoreFilepath) {
 }
 
 android {
-    namespace 'com.cfks.goosedroid'
+    namespace 'com.skyvanguard.goozy'
     compileSdk 36
 
     defaultConfig {
-        applicationId "com.cfks.goosedroid"
+        applicationId "com.skyvanguard.goozy"
         minSdk 24
         targetSdk 36
         versionCode 5

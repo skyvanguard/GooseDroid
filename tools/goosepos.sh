@@ -3,7 +3,7 @@
 export MSYS_NO_PATHCONV=1
 ADB="${ADB:-/c/Android/sdk/platform-tools/adb.exe}"
 "$ADB" shell dumpsys window windows | tr -d '\r' | awk '
-  /Window #/ { own = ($0 ~ /com\.cfks\.goosedroid/ && $0 !~ /MainActivity/) }
+  /Window #/ { own = ($0 ~ /com\.skyvanguard\.goozy/ && $0 !~ /MainActivity/) }
   own && match($0, /[ (]frame=\[[0-9-]+,[0-9-]+\]\[[0-9-]+,[0-9-]+\]/) {
     s = substr($0, RSTART, RLENGTH); gsub(/[^0-9-]+/, " ", s); split(s, a, " ")
     w = a[3]-a[1]; h = a[4]-a[2]
