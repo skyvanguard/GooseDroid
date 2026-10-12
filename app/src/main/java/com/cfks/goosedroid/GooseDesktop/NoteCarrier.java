@@ -1,6 +1,6 @@
 package com.cfks.goosedroid.GooseDesktop;
 
-import com.cfks.goosedroid.SamEngine.Vector2;
+import com.cfks.goosedroid.core.Vec2;
 
 /**
  * Ciclo de vida de una nota que el ganso trae desde el borde de la pantalla,
@@ -67,7 +67,7 @@ final class NoteCarrier {
      *
      * @param dirX dirección hacia el borde de donde viene la nota (unitaria)
      */
-    void pickUp(float dirX, float dirY, Vector2 goosePosition) {
+    void pickUp(float dirX, float dirY, Vec2 goosePosition) {
         if (state != State.WAITING || text.isEmpty()) {
             state = State.NONE;
             return;
@@ -93,7 +93,7 @@ final class NoteCarrier {
         lifetime = lifetimeFor(text);
     }
 
-    void update(float deltaTime, Vector2 goosePosition) {
+    void update(float deltaTime, Vec2 goosePosition) {
         if (state == State.CARRIED) {
             follow(goosePosition);
         } else if (state == State.PLACED) {
@@ -132,7 +132,7 @@ final class NoteCarrier {
         age = 0f;
     }
 
-    private void follow(Vector2 goosePosition) {
+    private void follow(Vec2 goosePosition) {
         if (goosePosition == null) return;
         centerX = goosePosition.x + directionX * CARRY_DISTANCE;
         centerY = goosePosition.y + directionY * CARRY_DISTANCE;

@@ -1,12 +1,12 @@
 package com.cfks.goosedroid;
 
-import com.cfks.goosedroid.SamEngine.Vector2;
+import com.cfks.goosedroid.core.Vec2;
 
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-public class Vector2Test {
+public class Vec2Test {
 
     private static final float EPSILON = 0.001f;
 
@@ -14,41 +14,41 @@ public class Vector2Test {
 
     @Test
     public void constructor_setsXY() {
-        Vector2 v = new Vector2(3f, 4f);
+        Vec2 v = new Vec2(3f, 4f);
         assertEquals(3f, v.x, EPSILON);
         assertEquals(4f, v.y, EPSILON);
     }
 
     @Test
     public void zero_isOrigin() {
-        assertEquals(0f, Vector2.zero.x, EPSILON);
-        assertEquals(0f, Vector2.zero.y, EPSILON);
+        assertEquals(0f, Vec2.ZERO.x, EPSILON);
+        assertEquals(0f, Vec2.ZERO.y, EPSILON);
     }
 
     // ============== ADDITION ==============
 
     @Test
     public void add_sumsComponents() {
-        Vector2 a = new Vector2(1f, 2f);
-        Vector2 b = new Vector2(3f, 4f);
-        Vector2 result = Vector2.add(a, b);
+        Vec2 a = new Vec2(1f, 2f);
+        Vec2 b = new Vec2(3f, 4f);
+        Vec2 result = Vec2.add(a, b);
         assertEquals(4f, result.x, EPSILON);
         assertEquals(6f, result.y, EPSILON);
     }
 
     @Test
     public void add_withZero() {
-        Vector2 a = new Vector2(5f, 7f);
-        Vector2 result = Vector2.add(a, Vector2.zero);
+        Vec2 a = new Vec2(5f, 7f);
+        Vec2 result = Vec2.add(a, Vec2.ZERO);
         assertEquals(5f, result.x, EPSILON);
         assertEquals(7f, result.y, EPSILON);
     }
 
     @Test
     public void add_withNegative() {
-        Vector2 a = new Vector2(5f, 3f);
-        Vector2 b = new Vector2(-2f, -1f);
-        Vector2 result = Vector2.add(a, b);
+        Vec2 a = new Vec2(5f, 3f);
+        Vec2 b = new Vec2(-2f, -1f);
+        Vec2 result = Vec2.add(a, b);
         assertEquals(3f, result.x, EPSILON);
         assertEquals(2f, result.y, EPSILON);
     }
@@ -57,17 +57,17 @@ public class Vector2Test {
 
     @Test
     public void subtract_diffComponents() {
-        Vector2 a = new Vector2(5f, 7f);
-        Vector2 b = new Vector2(2f, 3f);
-        Vector2 result = Vector2.subtract(a, b);
+        Vec2 a = new Vec2(5f, 7f);
+        Vec2 b = new Vec2(2f, 3f);
+        Vec2 result = Vec2.sub(a, b);
         assertEquals(3f, result.x, EPSILON);
         assertEquals(4f, result.y, EPSILON);
     }
 
     @Test
     public void subtract_fromSelf_isZero() {
-        Vector2 a = new Vector2(5f, 7f);
-        Vector2 result = Vector2.subtract(a, a);
+        Vec2 a = new Vec2(5f, 7f);
+        Vec2 result = Vec2.sub(a, a);
         assertEquals(0f, result.x, EPSILON);
         assertEquals(0f, result.y, EPSILON);
     }
@@ -76,8 +76,8 @@ public class Vector2Test {
 
     @Test
     public void negate_flipsSign() {
-        Vector2 a = new Vector2(3f, -4f);
-        Vector2 result = Vector2.negate(a);
+        Vec2 a = new Vec2(3f, -4f);
+        Vec2 result = Vec2.neg(a);
         assertEquals(-3f, result.x, EPSILON);
         assertEquals(4f, result.y, EPSILON);
     }
@@ -86,33 +86,33 @@ public class Vector2Test {
 
     @Test
     public void multiply_vectorByVector() {
-        Vector2 a = new Vector2(2f, 3f);
-        Vector2 b = new Vector2(4f, 5f);
-        Vector2 result = Vector2.multiply(a, b);
+        Vec2 a = new Vec2(2f, 3f);
+        Vec2 b = new Vec2(4f, 5f);
+        Vec2 result = Vec2.mul(a, b);
         assertEquals(8f, result.x, EPSILON);
         assertEquals(15f, result.y, EPSILON);
     }
 
     @Test
     public void multiply_vectorByScalar() {
-        Vector2 a = new Vector2(3f, 4f);
-        Vector2 result = Vector2.multiply(a, 2f);
+        Vec2 a = new Vec2(3f, 4f);
+        Vec2 result = Vec2.mul(a, 2f);
         assertEquals(6f, result.x, EPSILON);
         assertEquals(8f, result.y, EPSILON);
     }
 
     @Test
     public void multiply_byZero() {
-        Vector2 a = new Vector2(3f, 4f);
-        Vector2 result = Vector2.multiply(a, 0f);
+        Vec2 a = new Vec2(3f, 4f);
+        Vec2 result = Vec2.mul(a, 0f);
         assertEquals(0f, result.x, EPSILON);
         assertEquals(0f, result.y, EPSILON);
     }
 
     @Test
     public void multiply_byNegative() {
-        Vector2 a = new Vector2(3f, 4f);
-        Vector2 result = Vector2.multiply(a, -1f);
+        Vec2 a = new Vec2(3f, 4f);
+        Vec2 result = Vec2.mul(a, -1f);
         assertEquals(-3f, result.x, EPSILON);
         assertEquals(-4f, result.y, EPSILON);
     }
@@ -121,8 +121,8 @@ public class Vector2Test {
 
     @Test
     public void divide_byScalar() {
-        Vector2 a = new Vector2(6f, 8f);
-        Vector2 result = Vector2.divide(a, 2f);
+        Vec2 a = new Vec2(6f, 8f);
+        Vec2 result = Vec2.div(a, 2f);
         assertEquals(3f, result.x, EPSILON);
         assertEquals(4f, result.y, EPSILON);
     }
@@ -131,63 +131,63 @@ public class Vector2Test {
 
     @Test
     public void distance_between_345_triangle() {
-        Vector2 a = new Vector2(0f, 0f);
-        Vector2 b = new Vector2(3f, 4f);
-        assertEquals(5f, Vector2.Distance(a, b), EPSILON);
+        Vec2 a = new Vec2(0f, 0f);
+        Vec2 b = new Vec2(3f, 4f);
+        assertEquals(5f, Vec2.dist(a, b), EPSILON);
     }
 
     @Test
     public void distance_toSelf_isZero() {
-        Vector2 a = new Vector2(5f, 3f);
-        assertEquals(0f, Vector2.Distance(a, a), EPSILON);
+        Vec2 a = new Vec2(5f, 3f);
+        assertEquals(0f, Vec2.dist(a, a), EPSILON);
     }
 
     @Test
     public void distance_isCommutative() {
-        Vector2 a = new Vector2(1f, 2f);
-        Vector2 b = new Vector2(4f, 6f);
-        assertEquals(Vector2.Distance(a, b), Vector2.Distance(b, a), EPSILON);
+        Vec2 a = new Vec2(1f, 2f);
+        Vec2 b = new Vec2(4f, 6f);
+        assertEquals(Vec2.dist(a, b), Vec2.dist(b, a), EPSILON);
     }
 
     // ============== MAGNITUDE ==============
 
     @Test
     public void magnitude_345() {
-        Vector2 v = new Vector2(3f, 4f);
-        assertEquals(5f, Vector2.Magnitude(v), EPSILON);
+        Vec2 v = new Vec2(3f, 4f);
+        assertEquals(5f, Vec2.length(v), EPSILON);
     }
 
     @Test
     public void magnitude_zero() {
-        assertEquals(0f, Vector2.Magnitude(Vector2.zero), EPSILON);
+        assertEquals(0f, Vec2.length(Vec2.ZERO), EPSILON);
     }
 
     @Test
     public void magnitude_unitX() {
-        Vector2 v = new Vector2(1f, 0f);
-        assertEquals(1f, Vector2.Magnitude(v), EPSILON);
+        Vec2 v = new Vec2(1f, 0f);
+        assertEquals(1f, Vec2.length(v), EPSILON);
     }
 
     // ============== NORMALIZE ==============
 
     @Test
     public void normalize_unitLength() {
-        Vector2 v = new Vector2(3f, 4f);
-        Vector2 normalized = Vector2.Normalize(v);
-        assertEquals(1f, Vector2.Magnitude(normalized), EPSILON);
+        Vec2 v = new Vec2(3f, 4f);
+        Vec2 normalized = Vec2.normalize(v);
+        assertEquals(1f, Vec2.length(normalized), EPSILON);
     }
 
     @Test
     public void normalize_preservesDirection() {
-        Vector2 v = new Vector2(3f, 4f);
-        Vector2 normalized = Vector2.Normalize(v);
+        Vec2 v = new Vec2(3f, 4f);
+        Vec2 normalized = Vec2.normalize(v);
         assertEquals(0.6f, normalized.x, EPSILON);
         assertEquals(0.8f, normalized.y, EPSILON);
     }
 
     @Test
     public void normalize_zeroVector_returnsZero() {
-        Vector2 result = Vector2.Normalize(new Vector2(0f, 0f));
+        Vec2 result = Vec2.normalize(new Vec2(0f, 0f));
         assertEquals(0f, result.x, EPSILON);
         assertEquals(0f, result.y, EPSILON);
     }
@@ -196,57 +196,57 @@ public class Vector2Test {
 
     @Test
     public void dot_perpendicular_isZero() {
-        Vector2 a = new Vector2(1f, 0f);
-        Vector2 b = new Vector2(0f, 1f);
-        assertEquals(0f, Vector2.Dot(a, b), EPSILON);
+        Vec2 a = new Vec2(1f, 0f);
+        Vec2 b = new Vec2(0f, 1f);
+        assertEquals(0f, Vec2.dot(a, b), EPSILON);
     }
 
     @Test
     public void dot_parallel_isProduct() {
-        Vector2 a = new Vector2(2f, 0f);
-        Vector2 b = new Vector2(3f, 0f);
-        assertEquals(6f, Vector2.Dot(a, b), EPSILON);
+        Vec2 a = new Vec2(2f, 0f);
+        Vec2 b = new Vec2(3f, 0f);
+        assertEquals(6f, Vec2.dot(a, b), EPSILON);
     }
 
     @Test
     public void dot_opposite_isNegative() {
-        Vector2 a = new Vector2(1f, 0f);
-        Vector2 b = new Vector2(-1f, 0f);
-        assertTrue(Vector2.Dot(a, b) < 0);
+        Vec2 a = new Vec2(1f, 0f);
+        Vec2 b = new Vec2(-1f, 0f);
+        assertTrue(Vec2.dot(a, b) < 0);
     }
 
     @Test
     public void dot_withSelf_isMagnitudeSquared() {
-        Vector2 v = new Vector2(3f, 4f);
-        float mag = Vector2.Magnitude(v);
-        assertEquals(mag * mag, Vector2.Dot(v, v), EPSILON);
+        Vec2 v = new Vec2(3f, 4f);
+        float mag = Vec2.length(v);
+        assertEquals(mag * mag, Vec2.dot(v, v), EPSILON);
     }
 
     // ============== LERP ==============
 
     @Test
     public void lerp_atZero_returnsA() {
-        Vector2 a = new Vector2(0f, 0f);
-        Vector2 b = new Vector2(10f, 20f);
-        Vector2 result = Vector2.Lerp(a, b, 0f);
+        Vec2 a = new Vec2(0f, 0f);
+        Vec2 b = new Vec2(10f, 20f);
+        Vec2 result = Vec2.lerp(a, b, 0f);
         assertEquals(0f, result.x, EPSILON);
         assertEquals(0f, result.y, EPSILON);
     }
 
     @Test
     public void lerp_atOne_returnsB() {
-        Vector2 a = new Vector2(0f, 0f);
-        Vector2 b = new Vector2(10f, 20f);
-        Vector2 result = Vector2.Lerp(a, b, 1f);
+        Vec2 a = new Vec2(0f, 0f);
+        Vec2 b = new Vec2(10f, 20f);
+        Vec2 result = Vec2.lerp(a, b, 1f);
         assertEquals(10f, result.x, EPSILON);
         assertEquals(20f, result.y, EPSILON);
     }
 
     @Test
     public void lerp_atHalf_returnsMidpoint() {
-        Vector2 a = new Vector2(0f, 0f);
-        Vector2 b = new Vector2(10f, 20f);
-        Vector2 result = Vector2.Lerp(a, b, 0.5f);
+        Vec2 a = new Vec2(0f, 0f);
+        Vec2 b = new Vec2(10f, 20f);
+        Vec2 result = Vec2.lerp(a, b, 0.5f);
         assertEquals(5f, result.x, EPSILON);
         assertEquals(10f, result.y, EPSILON);
     }
@@ -255,51 +255,51 @@ public class Vector2Test {
 
     @Test
     public void getFromAngleDegrees_0_isRight() {
-        Vector2 v = Vector2.GetFromAngleDegrees(0f);
+        Vec2 v = Vec2.fromDegrees(0f);
         assertEquals(1f, v.x, EPSILON);
         assertEquals(0f, v.y, EPSILON);
     }
 
     @Test
     public void getFromAngleDegrees_90_isUp() {
-        Vector2 v = Vector2.GetFromAngleDegrees(90f);
+        Vec2 v = Vec2.fromDegrees(90f);
         assertEquals(0f, v.x, EPSILON);
         assertEquals(1f, v.y, EPSILON);
     }
 
     @Test
     public void getFromAngleDegrees_180_isLeft() {
-        Vector2 v = Vector2.GetFromAngleDegrees(180f);
+        Vec2 v = Vec2.fromDegrees(180f);
         assertEquals(-1f, v.x, EPSILON);
         assertEquals(0f, v.y, 0.01f);
     }
 
     @Test
     public void getFromAngleDegrees_resultIsUnitLength() {
-        Vector2 v = Vector2.GetFromAngleDegrees(37f);
-        assertEquals(1f, Vector2.Magnitude(v), EPSILON);
+        Vec2 v = Vec2.fromDegrees(37f);
+        assertEquals(1f, Vec2.length(v), EPSILON);
     }
 
     // ============== IMMUTABILITY ==============
 
     @Test
     public void operations_dontModifyOriginals() {
-        Vector2 a = new Vector2(1f, 2f);
-        Vector2 b = new Vector2(3f, 4f);
+        Vec2 a = new Vec2(1f, 2f);
+        Vec2 b = new Vec2(3f, 4f);
 
-        Vector2.add(a, b);
+        Vec2.add(a, b);
         assertEquals(1f, a.x, EPSILON);
         assertEquals(2f, a.y, EPSILON);
         assertEquals(3f, b.x, EPSILON);
         assertEquals(4f, b.y, EPSILON);
 
-        Vector2.subtract(a, b);
+        Vec2.sub(a, b);
         assertEquals(1f, a.x, EPSILON);
 
-        Vector2.multiply(a, 5f);
+        Vec2.mul(a, 5f);
         assertEquals(1f, a.x, EPSILON);
 
-        Vector2.Normalize(a);
+        Vec2.normalize(a);
         assertEquals(1f, a.x, EPSILON);
     }
 }

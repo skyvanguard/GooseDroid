@@ -1,6 +1,6 @@
 package com.cfks.goosedroid.GooseDesktop;
 
-import com.cfks.goosedroid.SamEngine.*;
+import com.cfks.goosedroid.core.*;
 import com.cfks.goosedroid.PetNeeds;
 import com.cfks.goosedroid.PetPersonality;
 
@@ -115,8 +115,8 @@ public class GooseTouchHandler {
     // ============== STATE ==============
 
     // Current touch state
-    private Vector2 touchStartPos = null;
-    private Vector2 lastTouchPos = null;
+    private Vec2 touchStartPos = null;
+    private Vec2 lastTouchPos = null;
     private long touchStartTime = 0;
     private long lastTouchEndTime = 0;
     private long lastMoveTime = 0;
@@ -137,7 +137,7 @@ public class GooseTouchHandler {
     private List<TouchPoint> touchHistory = new ArrayList<>();
 
     // Velocity tracking
-    private Vector2 dragVelocity = Vector2.zero;
+    private Vec2 dragVelocity = Vec2.ZERO;
     private List<VelocitySample> velocitySamples = new ArrayList<>();
     private static final int VELOCITY_SAMPLE_COUNT = 5;
 
@@ -154,7 +154,7 @@ public class GooseTouchHandler {
     // Zigzag detection
     private int zigzagTurns = 0;
     private float lastZigzagAngle = 0f;
-    private Vector2 lastZigzagPos = null;
+    private Vec2 lastZigzagPos = null;
 
     // Belly rub detection
     private float bellyRubAngle = 0f;
@@ -194,11 +194,11 @@ public class GooseTouchHandler {
      * A point in touch history.
      */
     private static class TouchPoint {
-        Vector2 position;
+        Vec2 position;
         long time;
 
-        TouchPoint(Vector2 pos, long time) {
-            this.position = new Vector2(pos.x, pos.y);
+        TouchPoint(Vec2 pos, long time) {
+            this.position = new Vec2(pos.x, pos.y);
             this.time = time;
         }
     }
@@ -207,10 +207,10 @@ public class GooseTouchHandler {
      * Velocity sample for throw calculation.
      */
     private static class VelocitySample {
-        Vector2 velocity;
+        Vec2 velocity;
         long time;
 
-        VelocitySample(Vector2 vel, long time) {
+        VelocitySample(Vec2 vel, long time) {
             this.velocity = vel;
             this.time = time;
         }
@@ -223,8 +223,8 @@ public class GooseTouchHandler {
      */
     public interface TouchCallback {
         void onTaskChange(GooseTasks.GooseTask task, boolean honk);
-        void onPositionChange(Vector2 newPos);
-        Vector2 getPosition();
+        void onPositionChange(Vec2 newPos);
+        Vec2 getPosition();
         float getDirection();
         GoosePhysics getPhysics();
     }
@@ -261,7 +261,7 @@ public class GooseTouchHandler {
     public float getComboMultiplier() { return comboMultiplier; }
     public long getLastPetTime() { return lastPetTime; }
     public long getLastTouchTime() { return lastTouchEndTime > 0 ? lastTouchEndTime : touchStartTime; }
-    public Vector2 getDragVelocity() { return dragVelocity; }
+    public Vec2 getDragVelocity() { return dragVelocity; }
     public float getAffectionGain() { return affectionGain; }
     public float getTouchPressure() { return touchPressure; }
 
@@ -329,9 +329,9 @@ public class GooseTouchHandler {
     public void onTouchStart(float x, float y) {
         if (callback == null) return;
 
-        Vector2 touchPos = new Vector2(x, y);
-        Vector2 goosePos = callback.getPosition();
-        float dist = Vector2.Distance(goosePos, touchPos);
+        Vec2 touchPos = new Vec2(x, y);
+        Vec2 goosePos = callback.getPosition();
+        float dist = Vec2.dist(goosePos, touchPos);
 
         // Check if touching the goose
         if (dist < Math.max(HIT_RADIUS, TheGoose.getTouchRadius())) {
@@ -390,15 +390,15 @@ public class GooseTouchHandler {
     public void onTouchMove(float x, float y) {
         if (!isTouching || callback == null) return;
 
-        Vector2 touchPos = new Vector2(x, y);
+        Vec2 touchPos = new Vec2(x, y);
         long currentTime = System.currentTimeMillis();
 
         // Add to history
         addTouchPoint(touchPos);
 
         // Calculate movement
-        Vector2 delta = Vector2.subtract(touchPos, lastTouchPos);
-        float moveDist = Vector2.Magnitude(delta);
+        Vec2 delta = Vec2.sub(touchPos, lastTouchPos);
+        float moveDist = Vec2.length(delta);
 
         // Update velocity samples
         if (lastTouchPos != null) {
@@ -406,13 +406,13 @@ public class GooseTouchHandler {
             float dt = (currentTime - lastMoveTime) / 1000f;
             lastMoveTime = currentTime;
             if (dt > 0) {
-                Vector2 velocity = Vector2.multiply(delta, 1f / dt);
+                Vec2 velocity = Vec2.mul(delta, 1f / dt);
                 addVelocitySample(velocity, currentTime);
             }
         }
 
         // Check for drag
-        float totalDist = Vector2.Distance(touchStartPos, touchPos);
+        float totalDist = Vec2.dist(touchStartPos, touchPos);
         if (totalDist > DRAG_THRESHOLD && !isBeingDragged) {
             startDrag();
         }
@@ -420,7 +420,7 @@ public class GooseTouchHandler {
         if (isBeingDragged) {
             // Copia: la física modifica su posición en el lugar y touchPos
             // se guarda como lastTouchPos
-            callback.onPositionChange(new Vector2(touchPos.x, touchPos.y));
+            callback.onPositionChange(new Vec2(touchPos.x, touchPos.y));
         } else {
             // Detect patterns
             detectPatterns(touchPos, delta, moveDist);
@@ -441,7 +441,7 @@ public class GooseTouchHandler {
     public void onTouchEnd(float x, float y) {
         if (!isTouching || callback == null) return;
 
-        Vector2 touchPos = new Vector2(x, y);
+        Vec2 touchPos = new Vec2(x, y);
         long currentTime = System.currentTimeMillis();
         long duration = currentTime - touchStartTime;
 
@@ -476,9 +476,9 @@ public class GooseTouchHandler {
 
     // ============== GESTURE DETECTION ==============
 
-    private GestureType determineGesture(Vector2 touchPos, long duration) {
-        float totalDist = Vector2.Distance(touchStartPos, touchPos);
-        float velocity = Vector2.Magnitude(dragVelocity);
+    private GestureType determineGesture(Vec2 touchPos, long duration) {
+        float totalDist = Vec2.dist(touchStartPos, touchPos);
+        float velocity = Vec2.length(dragVelocity);
 
         // Check for throw
         if (isBeingDragged && velocity > THROW_VELOCITY_THRESHOLD) {
@@ -564,9 +564,9 @@ public class GooseTouchHandler {
         return GestureType.POKE;
     }
 
-    private GestureType determineSwipeDirection(Vector2 touchPos) {
-        Vector2 delta = Vector2.subtract(touchPos, touchStartPos);
-        float angle = (float) Math.atan2(delta.y, delta.x) * SamMath.Rad2Deg;
+    private GestureType determineSwipeDirection(Vec2 touchPos) {
+        Vec2 delta = Vec2.sub(touchPos, touchStartPos);
+        float angle = (float) Math.atan2(delta.y, delta.x) * MathUtil.RAD_TO_DEG;
 
         // Normalize angle to 0-360
         if (angle < 0) angle += 360;
@@ -582,12 +582,12 @@ public class GooseTouchHandler {
         }
     }
 
-    private TouchZone determineTouchZone(Vector2 touchPos, Vector2 goosePos) {
+    private TouchZone determineTouchZone(Vec2 touchPos, Vec2 goosePos) {
         float relativeY = touchPos.y - goosePos.y;
         float relativeX = touchPos.x - goosePos.x;
         float gooseDir = callback != null ? callback.getDirection() : 0f;
-        Vector2 forward = Vector2.GetFromAngleDegrees(gooseDir);
-        Vector2 right = Vector2.GetFromAngleDegrees(gooseDir + 90f);
+        Vec2 forward = Vec2.fromDegrees(gooseDir);
+        Vec2 right = Vec2.fromDegrees(gooseDir + 90f);
 
         // Check beak (tip of head)
         float beakY = goosePos.y + BEAK_ZONE_OFFSET;
@@ -632,7 +632,7 @@ public class GooseTouchHandler {
         return TouchZone.BODY;
     }
 
-    private void detectPatterns(Vector2 touchPos, Vector2 delta, float moveDist) {
+    private void detectPatterns(Vec2 touchPos, Vec2 delta, float moveDist) {
         // Pet detection (smooth strokes)
         if (moveDist > 2f && moveDist < 30f) {
             petStrokes++;
@@ -683,13 +683,13 @@ public class GooseTouchHandler {
     /**
      * Detect zigzag pattern in touch movement.
      */
-    private void detectZigzag(Vector2 touchPos, Vector2 delta) {
+    private void detectZigzag(Vec2 touchPos, Vec2 delta) {
         if (lastZigzagPos == null) {
-            lastZigzagPos = new Vector2(touchPos.x, touchPos.y);
+            lastZigzagPos = new Vec2(touchPos.x, touchPos.y);
             return;
         }
 
-        float distance = Vector2.Distance(touchPos, lastZigzagPos);
+        float distance = Vec2.dist(touchPos, lastZigzagPos);
         if (distance > 20f) {
             // Calculate angle change
             float currentAngle = (float) Math.toDegrees(Math.atan2(delta.y, delta.x));
@@ -704,19 +704,19 @@ public class GooseTouchHandler {
             }
 
             lastZigzagAngle = currentAngle;
-            lastZigzagPos = new Vector2(touchPos.x, touchPos.y);
+            lastZigzagPos = new Vec2(touchPos.x, touchPos.y);
         }
     }
 
-    private void trackCircleGesture(Vector2 touchPos) {
+    private void trackCircleGesture(Vec2 touchPos) {
         if (touchStartPos == null) return;
 
-        Vector2 center = touchStartPos;
-        Vector2 toTouch = Vector2.subtract(touchPos, center);
-        float dist = Vector2.Magnitude(toTouch);
+        Vec2 center = touchStartPos;
+        Vec2 toTouch = Vec2.sub(touchPos, center);
+        float dist = Vec2.length(toTouch);
 
         if (dist > CIRCLE_MIN_RADIUS) {
-            float angle = (float) Math.atan2(toTouch.y, toTouch.x) * SamMath.Rad2Deg;
+            float angle = (float) Math.atan2(toTouch.y, toTouch.x) * MathUtil.RAD_TO_DEG;
 
             if (trackingCircle) {
                 float angleDelta = angle - lastAngle;
@@ -735,7 +735,7 @@ public class GooseTouchHandler {
 
     // ============== GESTURE EXECUTION ==============
 
-    private void executeGesture(GestureType gesture, Vector2 touchPos) {
+    private void executeGesture(GestureType gesture, Vec2 touchPos) {
         currentGesture = gesture;
         lastGestureTime = System.currentTimeMillis();
 
@@ -889,8 +889,8 @@ public class GooseTouchHandler {
         GoosePhysics physics = callback.getPhysics();
         if (physics != null && touchStartPos != null) {
             physics.applyImpulse(
-                Vector2.multiply(
-                    Vector2.Normalize(Vector2.subtract(physics.getPosition(), touchStartPos)),
+                Vec2.mul(
+                    Vec2.normalize(Vec2.sub(physics.getPosition(), touchStartPos)),
                     50f
                 )
             );
@@ -923,7 +923,7 @@ public class GooseTouchHandler {
         GoosePhysics physics = callback.getPhysics();
         if (physics != null) {
             physics.jump(1.5f);
-            physics.applyImpulse(new Vector2(0, -100f));
+            physics.applyImpulse(new Vec2(0, -100f));
         }
 
         addHappiness(5);
@@ -946,7 +946,7 @@ public class GooseTouchHandler {
         GoosePhysics physics = callback.getPhysics();
         if (physics != null) {
             float force = right ? 150f : -150f;
-            physics.applyImpulse(new Vector2(force, 0));
+            physics.applyImpulse(new Vec2(force, 0));
         }
 
         addHappiness(3);
@@ -960,7 +960,7 @@ public class GooseTouchHandler {
         GoosePhysics physics = callback.getPhysics();
         if (physics != null) {
             float spinForce = clockwise ? 100f : -100f;
-            physics.applyImpulse(new Vector2(spinForce, -50f));
+            physics.applyImpulse(new Vec2(spinForce, -50f));
             physics.addWobble(0.8f);
         }
 
@@ -979,7 +979,7 @@ public class GooseTouchHandler {
         }
 
         // Happiness depends on throw strength
-        float throwStrength = Vector2.Magnitude(dragVelocity);
+        float throwStrength = Vec2.length(dragVelocity);
         if (throwStrength > 500f) {
             showEmoji("!!!");
             addHappiness(-5); // Too rough!
@@ -996,7 +996,7 @@ public class GooseTouchHandler {
         GoosePhysics physics = callback.getPhysics();
         if (physics != null) {
             // Apply wobble effect
-            physics.applyImpulse(new Vector2(
+            physics.applyImpulse(new Vec2(
                     (float)(Math.random() - 0.5) * 200f,
                     (float)(Math.random() - 0.5) * 200f
             ));
@@ -1019,7 +1019,7 @@ public class GooseTouchHandler {
         // Squash and relax effect
         GoosePhysics physics = callback.getPhysics();
         if (physics != null) {
-            physics.setVelocity(Vector2.zero);
+            physics.setVelocity(Vec2.ZERO);
         }
     }
 
@@ -1035,7 +1035,7 @@ public class GooseTouchHandler {
         // Random jump direction
         GoosePhysics physics = callback.getPhysics();
         if (physics != null) {
-            physics.applyImpulse(new Vector2(
+            physics.applyImpulse(new Vec2(
                     (float)(Math.random() - 0.5) * 150f,
                     -100f
             ));
@@ -1055,8 +1055,8 @@ public class GooseTouchHandler {
         GoosePhysics physics = callback.getPhysics();
         if (physics != null) {
             float dir = callback.getDirection();
-            Vector2 back = Vector2.GetFromAngleDegrees(dir + 180f);
-            physics.applyImpulse(Vector2.multiply(back, 50f));
+            Vec2 back = Vec2.fromDegrees(dir + 180f);
+            physics.applyImpulse(Vec2.mul(back, 50f));
         }
     }
 
@@ -1070,7 +1070,7 @@ public class GooseTouchHandler {
         GoosePhysics physics = callback.getPhysics();
         if (physics != null) {
             // Small lift
-            physics.applyImpulse(new Vector2(0, -150f));
+            physics.applyImpulse(new Vec2(0, -150f));
         }
     }
 
@@ -1085,7 +1085,7 @@ public class GooseTouchHandler {
         // Calm goose completely
         GoosePhysics physics = callback.getPhysics();
         if (physics != null) {
-            physics.setVelocity(Vector2.zero);
+            physics.setVelocity(Vec2.ZERO);
         }
     }
 
@@ -1101,11 +1101,11 @@ public class GooseTouchHandler {
         }
     }
 
-    private void endDrag(Vector2 touchPos) {
+    private void endDrag(Vec2 touchPos) {
         // Throw handled in gesture execution if velocity is high enough
         GoosePhysics physics = callback.getPhysics();
-        if (physics != null && Vector2.Magnitude(dragVelocity) < THROW_VELOCITY_THRESHOLD) {
-            physics.endDrag(Vector2.zero);
+        if (physics != null && Vec2.length(dragVelocity) < THROW_VELOCITY_THRESHOLD) {
+            physics.endDrag(Vec2.ZERO);
         }
 
         showEmoji("?");
@@ -1144,37 +1144,37 @@ public class GooseTouchHandler {
 
     // ============== HELPERS ==============
 
-    private void addTouchPoint(Vector2 pos) {
+    private void addTouchPoint(Vec2 pos) {
         touchHistory.add(new TouchPoint(pos, System.currentTimeMillis()));
         if (touchHistory.size() > TOUCH_HISTORY_SIZE) {
             touchHistory.remove(0);
         }
     }
 
-    private void addVelocitySample(Vector2 velocity, long time) {
+    private void addVelocitySample(Vec2 velocity, long time) {
         velocitySamples.add(new VelocitySample(velocity, time));
         if (velocitySamples.size() > VELOCITY_SAMPLE_COUNT) {
             velocitySamples.remove(0);
         }
     }
 
-    private Vector2 calculateAverageVelocity() {
-        if (velocitySamples.isEmpty()) return Vector2.zero;
+    private Vec2 calculateAverageVelocity() {
+        if (velocitySamples.isEmpty()) return Vec2.ZERO;
 
-        Vector2 sum = Vector2.zero;
+        Vec2 sum = Vec2.ZERO;
         float totalWeight = 0f;
 
         // Weight recent samples more heavily
         for (int i = 0; i < velocitySamples.size(); i++) {
             float weight = (i + 1f) / velocitySamples.size();
-            sum = Vector2.add(sum, Vector2.multiply(velocitySamples.get(i).velocity, weight));
+            sum = Vec2.add(sum, Vec2.mul(velocitySamples.get(i).velocity, weight));
             totalWeight += weight;
         }
 
         if (totalWeight > 0) {
-            return Vector2.multiply(sum, 1f / totalWeight);
+            return Vec2.mul(sum, 1f / totalWeight);
         }
-        return Vector2.zero;
+        return Vec2.ZERO;
     }
 
     private void addHappiness(float amount) {

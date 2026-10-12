@@ -1,6 +1,6 @@
 package com.cfks.goosedroid;
 
-import com.cfks.goosedroid.SamEngine.Time;
+import com.cfks.goosedroid.core.Time;
 
 import org.junit.After;
 import org.junit.Before;

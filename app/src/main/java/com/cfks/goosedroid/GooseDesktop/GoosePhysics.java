@@ -1,6 +1,6 @@
 package com.cfks.goosedroid.GooseDesktop;
 
-import com.cfks.goosedroid.SamEngine.*;
+import com.cfks.goosedroid.core.*;
 
 /**
  * Advanced physics system for the goose.
@@ -72,11 +72,11 @@ public class GoosePhysics {
 
     // ============== MOVEMENT STATE ==============
 
-    private Vector2 position = new Vector2(300f, 300f);
-    private Vector2 velocity = new Vector2(0f, 0f);
-    private Vector2 targetPos = new Vector2(300f, 300f);
+    private Vec2 position = new Vec2(300f, 300f);
+    private Vec2 velocity = new Vec2(0f, 0f);
+    private Vec2 targetPos = new Vec2(300f, 300f);
     private float direction = 90f;
-    private Vector2 targetDirection;
+    private Vec2 targetDirection;
 
     // Vertical movement (jumping/falling)
     private float verticalPosition = 0f;  // Height above ground
@@ -105,7 +105,7 @@ public class GoosePhysics {
     private float stunTimer = 0f;
 
     // Impulse accumulator
-    private Vector2 pendingImpulse = Vector2.zero;
+    private Vec2 pendingImpulse = Vec2.ZERO;
 
     // Movement flags
     private boolean canMove = true;
@@ -114,14 +114,14 @@ public class GoosePhysics {
 
     // ============== FOOT STATE ==============
 
-    private Vector2 lFootPos;
-    private Vector2 rFootPos;
+    private Vec2 lFootPos;
+    private Vec2 rFootPos;
     private double lFootMoveTimeStart = -1f;
     private double rFootMoveTimeStart = -1f;
-    private Vector2 lFootMoveOrigin;
-    private Vector2 rFootMoveOrigin;
-    private Vector2 lFootMoveDir;
-    private Vector2 rFootMoveDir;
+    private Vec2 lFootMoveOrigin;
+    private Vec2 rFootMoveOrigin;
+    private Vec2 lFootMoveDir;
+    private Vec2 rFootMoveDir;
 
     // Foot height during jump
     private float footHeightOffset = 0f;
@@ -132,7 +132,7 @@ public class GoosePhysics {
 
     // ============== FOOTPRINTS ==============
 
-    private final FootMark[] footMarks = new FootMark[64];
+    private final Footprint[] footMarks = new Footprint[64];
     private int footMarkIndex = 0;
     private double trackMudEndTime = -1f;
 
@@ -157,9 +157,9 @@ public class GoosePhysics {
     }
 
     public void initPosition(float x, float y) {
-        position = new Vector2(x, y);
+        position = new Vec2(x, y);
         groundY = y;
-        targetPos = new Vector2(100f, 150f);
+        targetPos = new Vec2(100f, 150f);
         lFootPos = getFootHome(false);
         rFootPos = getFootHome(true);
         verticalPosition = 0f;
@@ -178,20 +178,20 @@ public class GoosePhysics {
 
     // ============== GETTERS ==============
 
-    public Vector2 getPosition() { return position; }
-    public Vector2 getVelocity() { return velocity; }
-    public Vector2 getTargetPos() { return targetPos; }
+    public Vec2 getPosition() { return position; }
+    public Vec2 getVelocity() { return velocity; }
+    public Vec2 getTargetPos() { return targetPos; }
     public float getDirection() { return direction; }
-    public Vector2 getTargetDirection() { return targetDirection; }
+    public Vec2 getTargetDirection() { return targetDirection; }
     public float getCurrentSpeed() {
         return (float) Math.sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
     }
     public float getMaxSpeed() { return currentSpeed; }
     public float getCurrentAcceleration() { return currentAcceleration; }
     public float getStepTime() { return stepTime; }
-    public Vector2 getLeftFootPos() { return lFootPos; }
-    public Vector2 getRightFootPos() { return rFootPos; }
-    public FootMark[] getFootMarks() { return footMarks; }
+    public Vec2 getLeftFootPos() { return lFootPos; }
+    public Vec2 getRightFootPos() { return rFootPos; }
+    public Footprint[] getFootMarks() { return footMarks; }
     public double getTrackMudEndTime() { return trackMudEndTime; }
 
     public PhysicsState getState() { return state; }
@@ -210,12 +210,12 @@ public class GoosePhysics {
 
     // ============== SETTERS ==============
 
-    public void setPosition(Vector2 pos) {
+    public void setPosition(Vec2 pos) {
         position = pos;
         groundY = pos.y;
     }
-    public void setVelocity(Vector2 vel) { velocity = vel; }
-    public void setTargetPos(Vector2 target) { targetPos = target; }
+    public void setVelocity(Vec2 vel) { velocity = vel; }
+    public void setTargetPos(Vec2 target) { targetPos = target; }
     public void setDirection(float dir) { direction = dir; }
     public void setTrackMudEndTime(double time) { trackMudEndTime = time; }
     public void setSurface(SurfaceType surface) { currentSurface = surface; }
@@ -235,8 +235,8 @@ public class GoosePhysics {
 
         // Apply pending impulse
         if (pendingImpulse.x != 0 || pendingImpulse.y != 0) {
-            velocity = Vector2.add(velocity, pendingImpulse);
-            pendingImpulse = Vector2.zero;
+            velocity = Vec2.add(velocity, pendingImpulse);
+            pendingImpulse = Vec2.ZERO;
         }
 
         // Update based on current state
@@ -272,10 +272,10 @@ public class GoosePhysics {
         // Update feet - also update when dragged so feet follow the body
         if (state == PhysicsState.DRAGGED) {
             // When dragged, feet should follow the body position smoothly
-            Vector2 footHomeL = getFootHome(false);
-            Vector2 footHomeR = getFootHome(true);
-            lFootPos = Vector2.Lerp(lFootPos, footHomeL, 0.3f);
-            rFootPos = Vector2.Lerp(rFootPos, footHomeR, 0.3f);
+            Vec2 footHomeL = getFootHome(false);
+            Vec2 footHomeR = getFootHome(true);
+            lFootPos = Vec2.lerp(lFootPos, footHomeL, 0.3f);
+            rFootPos = Vec2.lerp(rFootPos, footHomeR, 0.3f);
         } else {
             solveFeet();
         }
@@ -316,45 +316,45 @@ public class GoosePhysics {
         if (!canMove) return;
 
         // Calculate target direction
-        targetDirection = Vector2.Normalize(Vector2.subtract(targetPos, position));
+        targetDirection = Vec2.normalize(Vec2.sub(targetPos, position));
 
         // Smoothly rotate towards target
-        Vector2 currentDir = Vector2.GetFromAngleDegrees(direction);
-        Vector2 newDir = Vector2.Lerp(currentDir, targetDirection, 0.25f);
+        Vec2 currentDir = Vec2.fromDegrees(direction);
+        Vec2 newDir = Vec2.lerp(currentDir, targetDirection, 0.25f);
         direction = (float) Math.atan2(newDir.y, newDir.x) * 57.2957764f;
 
         // Apply acceleration towards target
-        Vector2 toTarget = Vector2.subtract(targetPos, position);
-        float distToTarget = Vector2.Magnitude(toTarget);
+        Vec2 toTarget = Vec2.sub(targetPos, position);
+        float distToTarget = Vec2.length(toTarget);
 
         if (distToTarget > STOP_THRESHOLD) {
-            Vector2 accel = Vector2.multiply(
-                Vector2.Normalize(toTarget),
+            Vec2 accel = Vec2.mul(
+                Vec2.normalize(toTarget),
                 currentAcceleration * deltaTime
             );
-            velocity = Vector2.add(velocity, accel);
+            velocity = Vec2.add(velocity, accel);
         }
 
         // Clamp velocity to max speed
-        float speed = Vector2.Magnitude(velocity);
+        float speed = Vec2.length(velocity);
         if (speed > currentSpeed) {
-            velocity = Vector2.multiply(Vector2.Normalize(velocity), currentSpeed);
+            velocity = Vec2.mul(Vec2.normalize(velocity), currentSpeed);
         }
 
         // Apply friction based on surface
         float friction = getFrictionForSurface();
-        velocity = Vector2.multiply(velocity, friction);
+        velocity = Vec2.mul(velocity, friction);
 
         // Apply drag
-        velocity = Vector2.multiply(velocity, DRAG_COEFFICIENT);
+        velocity = Vec2.mul(velocity, DRAG_COEFFICIENT);
 
         // Stop if very slow
-        if (Vector2.Magnitude(velocity) < 1f) {
-            velocity = Vector2.zero;
+        if (Vec2.length(velocity) < 1f) {
+            velocity = Vec2.ZERO;
         }
 
         // Update position
-        position = Vector2.add(position, Vector2.multiply(velocity, deltaTime));
+        position = Vec2.add(position, Vec2.mul(velocity, deltaTime));
     }
 
     private void updateAirborneMovement(float deltaTime) {
@@ -367,24 +367,24 @@ public class GoosePhysics {
 
         // Horizontal movement continues but with reduced control
         if (canMove) {
-            Vector2 toTarget = Vector2.subtract(targetPos, position);
-            Vector2 accel = Vector2.multiply(
-                Vector2.Normalize(toTarget),
+            Vec2 toTarget = Vec2.sub(targetPos, position);
+            Vec2 accel = Vec2.mul(
+                Vec2.normalize(toTarget),
                 currentAcceleration * 0.3f * deltaTime  // Reduced air control
             );
-            velocity = Vector2.add(velocity, accel);
+            velocity = Vec2.add(velocity, accel);
         }
 
         // Apply air drag
-        velocity = Vector2.multiply(velocity, 0.995f);
+        velocity = Vec2.mul(velocity, 0.995f);
 
         // Update position
-        position = Vector2.add(position, Vector2.multiply(velocity, deltaTime));
+        position = Vec2.add(position, Vec2.mul(velocity, deltaTime));
 
         // Update direction based on velocity
-        if (Vector2.Magnitude(velocity) > 10f) {
+        if (Vec2.length(velocity) > 10f) {
             float targetDir = (float) Math.atan2(velocity.y, velocity.x) * 57.2957764f;
-            direction = SamMath.LerpAngle(direction, targetDir, 0.1f);
+            direction = MathUtil.lerpAngle(direction, targetDir, 0.1f);
         }
     }
 
@@ -395,8 +395,8 @@ public class GoosePhysics {
 
     private void updateStunnedMovement(float deltaTime) {
         // Apply heavy friction while stunned
-        velocity = Vector2.multiply(velocity, 0.9f);
-        position = Vector2.add(position, Vector2.multiply(velocity, deltaTime));
+        velocity = Vec2.mul(velocity, 0.9f);
+        position = Vec2.add(position, Vec2.mul(velocity, deltaTime));
 
         // Add wobble when stunned
         if (wobbleIntensity < 0.5f) {
@@ -420,8 +420,8 @@ public class GoosePhysics {
 
     private void updateSquashStretch(float deltaTime) {
         // Recover towards normal
-        squashFactor = SamMath.Lerp(squashFactor, 1f, SQUASH_RECOVERY_SPEED * deltaTime);
-        stretchFactor = SamMath.Lerp(stretchFactor, 1f, SQUASH_RECOVERY_SPEED * deltaTime);
+        squashFactor = MathUtil.lerp(squashFactor, 1f, SQUASH_RECOVERY_SPEED * deltaTime);
+        stretchFactor = MathUtil.lerp(stretchFactor, 1f, SQUASH_RECOVERY_SPEED * deltaTime);
 
         // Apply stretch when jumping/falling fast
         if (isAirborne()) {
@@ -538,7 +538,7 @@ public class GoosePhysics {
         verticalVelocity = JUMP_FORCE * forceMultiplier;
 
         // Boost horizontal velocity slightly
-        velocity = Vector2.multiply(velocity, JUMP_HORIZONTAL_BOOST);
+        velocity = Vec2.mul(velocity, JUMP_HORIZONTAL_BOOST);
 
         // Stretch on jump
         stretchFactor = 1f + SQUASH_AMOUNT;
@@ -589,25 +589,25 @@ public class GoosePhysics {
     /**
      * Apply an impulse to the goose.
      */
-    public void applyImpulse(Vector2 impulse) {
-        pendingImpulse = Vector2.add(pendingImpulse, impulse);
-        addWobble(Vector2.Magnitude(impulse) / 200f);
+    public void applyImpulse(Vec2 impulse) {
+        pendingImpulse = Vec2.add(pendingImpulse, impulse);
+        addWobble(Vec2.length(impulse) / 200f);
     }
 
     /**
      * Apply an impulse in a direction.
      */
     public void applyImpulse(float angle, float force) {
-        Vector2 dir = Vector2.GetFromAngleDegrees(angle);
-        applyImpulse(Vector2.multiply(dir, force));
+        Vec2 dir = Vec2.fromDegrees(angle);
+        applyImpulse(Vec2.mul(dir, force));
     }
 
     /**
      * Knock back the goose.
      */
-    public void knockBack(Vector2 fromPosition, float force) {
-        Vector2 dir = Vector2.Normalize(Vector2.subtract(position, fromPosition));
-        applyImpulse(Vector2.multiply(dir, force));
+    public void knockBack(Vec2 fromPosition, float force) {
+        Vec2 dir = Vec2.normalize(Vec2.sub(position, fromPosition));
+        applyImpulse(Vec2.mul(dir, force));
 
         // Small hop on knockback
         if (isGrounded() && force > 100f) {
@@ -638,13 +638,13 @@ public class GoosePhysics {
      */
     public void startDrag() {
         state = PhysicsState.DRAGGED;
-        velocity = Vector2.zero;
+        velocity = Vec2.ZERO;
     }
 
     /**
      * Stop being dragged.
      */
-    public void endDrag(Vector2 throwVelocity) {
+    public void endDrag(Vec2 throwVelocity) {
         state = PhysicsState.GROUNDED;
         velocity = throwVelocity;
 
@@ -654,15 +654,15 @@ public class GoosePhysics {
             state = PhysicsState.JUMPING;
         }
 
-        addWobble(Vector2.Magnitude(throwVelocity) / 300f);
+        addWobble(Vec2.length(throwVelocity) / 300f);
     }
 
     /**
      * Teleport to position instantly.
      */
-    public void teleport(Vector2 newPosition) {
+    public void teleport(Vec2 newPosition) {
         position = newPosition;
-        velocity = Vector2.zero;
+        velocity = Vec2.ZERO;
         verticalPosition = 0f;
         verticalVelocity = 0f;
         state = PhysicsState.GROUNDED;
@@ -713,36 +713,36 @@ public class GoosePhysics {
         // Don't animate feet when airborne
         if (isAirborne()) {
             // Tuck feet slightly when in air
-            Vector2 centerPos = getFootHome(false);
-            lFootPos = Vector2.Lerp(lFootPos, Vector2.add(centerPos, new Vector2(0, -5)), 0.2f);
-            rFootPos = Vector2.Lerp(rFootPos, Vector2.add(centerPos, new Vector2(0, -5)), 0.2f);
+            Vec2 centerPos = getFootHome(false);
+            lFootPos = Vec2.lerp(lFootPos, Vec2.add(centerPos, new Vec2(0, -5)), 0.2f);
+            rFootPos = Vec2.lerp(rFootPos, Vec2.add(centerPos, new Vec2(0, -5)), 0.2f);
             return;
         }
 
-        Vector2 footHome = getFootHome(false);
-        Vector2 footHome2 = getFootHome(true);
+        Vec2 footHome = getFootHome(false);
+        Vec2 footHome2 = getFootHome(true);
 
         if (lFootMoveTimeStart < 0f && rFootMoveTimeStart < 0f) {
-            if (Vector2.Distance(lFootPos, footHome) > 5f) {
+            if (Vec2.dist(lFootPos, footHome) > 5f) {
                 lFootMoveOrigin = lFootPos;
-                lFootMoveDir = Vector2.Normalize(Vector2.subtract(footHome, lFootPos));
+                lFootMoveDir = Vec2.normalize(Vec2.sub(footHome, lFootPos));
                 lFootMoveTimeStart = Time.time;
                 lastStepLeft = true;
                 return;
             }
-            if (Vector2.Distance(rFootPos, footHome2) > 5f) {
+            if (Vec2.dist(rFootPos, footHome2) > 5f) {
                 rFootMoveOrigin = rFootPos;
-                rFootMoveDir = Vector2.Normalize(Vector2.subtract(footHome2, rFootPos));
+                rFootMoveDir = Vec2.normalize(Vec2.sub(footHome2, rFootPos));
                 rFootMoveTimeStart = Time.time;
                 lastStepLeft = false;
                 return;
             }
         } else if (lFootMoveTimeStart > 0f) {
-            Vector2 target = Vector2.add(footHome, Vector2.multiply(Vector2.multiply(lFootMoveDir, 0.4f), 5f));
+            Vec2 target = Vec2.add(footHome, Vec2.mul(Vec2.mul(lFootMoveDir, 0.4f), 5f));
             if (Time.time <= lFootMoveTimeStart + stepTime) {
                 float p = (float) ((Time.time - lFootMoveTimeStart) / stepTime);
-                float eased = Easings.CubicEaseInOut(p);
-                lFootPos = Vector2.Lerp(lFootMoveOrigin, target, eased);
+                float eased = MathUtil.easeInOut(p);
+                lFootPos = Vec2.lerp(lFootMoveOrigin, target, eased);
 
                 // Add arc to foot movement
                 float arcHeight = (float)Math.sin(p * Math.PI) * 3f;
@@ -761,7 +761,7 @@ public class GoosePhysics {
                 addFootMark(lFootPos);
             }
         } else if (rFootMoveTimeStart > 0f) {
-            Vector2 target = Vector2.add(footHome2, Vector2.multiply(Vector2.multiply(rFootMoveDir, 0.4f), 5f));
+            Vec2 target = Vec2.add(footHome2, Vec2.mul(Vec2.mul(rFootMoveDir, 0.4f), 5f));
             if (Time.time > rFootMoveTimeStart + stepTime) {
                 rFootPos = target;
                 rFootMoveTimeStart = -1f;
@@ -775,8 +775,8 @@ public class GoosePhysics {
                 }
             } else {
                 float p = (float) ((Time.time - rFootMoveTimeStart) / stepTime);
-                float eased = Easings.CubicEaseInOut(p);
-                rFootPos = Vector2.Lerp(rFootMoveOrigin, target, eased);
+                float eased = MathUtil.easeInOut(p);
+                rFootPos = Vec2.lerp(rFootMoveOrigin, target, eased);
 
                 // Add arc to foot movement
                 float arcHeight = (float)Math.sin(p * Math.PI) * 3f;
@@ -788,20 +788,20 @@ public class GoosePhysics {
     /**
      * Get foot home position.
      */
-    private Vector2 getFootHome(boolean rightFoot) {
+    private Vec2 getFootHome(boolean rightFoot) {
         float offset = rightFoot ? 1f : 0f;
-        Vector2 perpendicular = Vector2.multiply(Vector2.GetFromAngleDegrees(direction + 90f), offset);
-        return Vector2.add(position, Vector2.multiply(perpendicular, 6f));
+        Vec2 perpendicular = Vec2.mul(Vec2.fromDegrees(direction + 90f), offset);
+        return Vec2.add(position, Vec2.mul(perpendicular, 6f));
     }
 
     /**
      * Add a footprint mark.
      */
-    private void addFootMark(Vector2 markPos) {
+    private void addFootMark(Vec2 markPos) {
         if (footMarks[footMarkIndex] == null) {
-            footMarks[footMarkIndex] = new FootMark();
+            footMarks[footMarkIndex] = new Footprint();
         }
-        footMarks[footMarkIndex].time = Time.time;
+        footMarks[footMarkIndex].stampedAt = Time.time;
         footMarks[footMarkIndex].position = markPos;
         footMarkIndex++;
         if (footMarkIndex >= footMarks.length) {
@@ -815,7 +815,7 @@ public class GoosePhysics {
      * Get distance to target.
      */
     public float getDistanceToTarget() {
-        return Vector2.Distance(position, targetPos);
+        return Vec2.dist(position, targetPos);
     }
 
     /**
@@ -836,7 +836,7 @@ public class GoosePhysics {
      * Check if moving.
      */
     public boolean isMoving() {
-        return Vector2.Magnitude(velocity) > 5f;
+        return Vec2.length(velocity) > 5f;
     }
 
     /**
@@ -851,7 +851,7 @@ public class GoosePhysics {
      * Stop all movement immediately.
      */
     public void stop() {
-        velocity = Vector2.zero;
+        velocity = Vec2.ZERO;
         verticalVelocity = 0f;
         if (isAirborne()) {
             state = PhysicsState.FALLING;
@@ -862,7 +862,7 @@ public class GoosePhysics {
      * Reset physics to initial state.
      */
     public void reset() {
-        velocity = Vector2.zero;
+        velocity = Vec2.ZERO;
         verticalPosition = 0f;
         verticalVelocity = 0f;
         state = PhysicsState.GROUNDED;
@@ -872,6 +872,6 @@ public class GoosePhysics {
         stretchFactor = 1f;
         stunTimer = 0f;
         canMove = true;
-        pendingImpulse = Vector2.zero;
+        pendingImpulse = Vec2.ZERO;
     }
 }

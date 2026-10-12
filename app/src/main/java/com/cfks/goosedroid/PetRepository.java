@@ -40,13 +40,13 @@ public final class PetRepository {
      * Devuelve la configuración leída de disco, creando el archivo con los valores
      * por defecto si todavía no existe.
      */
-    public static ConfigureActivity readConfig(Context context) throws IOException {
+    public static PetConfigFile readConfig(Context context) throws IOException {
         String path = getConfigPath(context);
         if (!Utils.fileExists(path)) {
             Utils.copyAssetFile(context, CONFIG_FILE_NAME, path);
         }
-        ConfigureActivity config = new ConfigureActivity(context);
-        config.readFromSD(path);
+        PetConfigFile config = new PetConfigFile();
+        config.load(new java.io.File(path));
         return config;
     }
 
@@ -72,43 +72,43 @@ public final class PetRepository {
         ensureLoaded(context);
     }
 
-    private static void loadFrom(ConfigureActivity config) {
-        boolean isPetModeEnabled = parseBoolean(config.getIniKey("PetModeEnabled"), true);
+    private static void loadFrom(PetConfigFile config) {
+        boolean isPetModeEnabled = parseBoolean(config.get("PetModeEnabled"), true);
         TheGoose.petModeEnabled = isPetModeEnabled;
 
-        long lastPlayed = parseLong(config.getIniKey("LastPlayedTimestamp"), 0L);
+        long lastPlayed = parseLong(config.get("LastPlayedTimestamp"), 0L);
         PetNeeds.get().loadState(
-                parseFloat(config.getIniKey("PetHunger"), DEFAULT_HUNGER),
-                parseFloat(config.getIniKey("PetEnergy"), DEFAULT_ENERGY),
-                parseFloat(config.getIniKey("PetHappiness"), DEFAULT_HAPPINESS),
+                parseFloat(config.get("PetHunger"), DEFAULT_HUNGER),
+                parseFloat(config.get("PetEnergy"), DEFAULT_ENERGY),
+                parseFloat(config.get("PetHappiness"), DEFAULT_HAPPINESS),
                 lastPlayed);
         // Higiene y salud se cargan después: loadState ya aplicó el tiempo offline
         // a lo demás; la higiene offline se aplica al próximo updateOfflineTime.
         PetNeeds.get().loadCare(
-                parseFloat(config.getIniKey("PetHygiene"), DEFAULT_CARE),
-                parseFloat(config.getIniKey("PetHealth"), DEFAULT_CARE));
+                parseFloat(config.get("PetHygiene"), DEFAULT_CARE),
+                parseFloat(config.get("PetHealth"), DEFAULT_CARE));
 
         PetPersonality.get().loadState(
-                parseFloat(config.getIniKey("PersonalityPlayfulness"), 0f),
-                parseFloat(config.getIniKey("PersonalityAffection"), 0f),
-                parseFloat(config.getIniKey("PersonalityBravery"), 0f),
-                parseFloat(config.getIniKey("PersonalityMischief"), DEFAULT_MISCHIEF),
-                parseInt(config.getIniKey("TotalPets"), 0),
-                parseInt(config.getIniKey("TotalPlays"), 0),
-                parseInt(config.getIniKey("TotalFeeds"), 0),
+                parseFloat(config.get("PersonalityPlayfulness"), 0f),
+                parseFloat(config.get("PersonalityAffection"), 0f),
+                parseFloat(config.get("PersonalityBravery"), 0f),
+                parseFloat(config.get("PersonalityMischief"), DEFAULT_MISCHIEF),
+                parseInt(config.get("TotalPets"), 0),
+                parseInt(config.get("TotalPlays"), 0),
+                parseInt(config.get("TotalFeeds"), 0),
                 lastPlayed > 0 ? lastPlayed : System.currentTimeMillis());
 
         if (isPetModeEnabled) {
             PetAppearance appearance = PetAppearance.get();
-            String petName = config.getIniKey("PetName");
+            String petName = config.get("PetName");
             appearance.loadState(
-                    appearance.hexToColor(config.getIniKey("PetBodyColor")),
-                    appearance.hexToColor(config.getIniKey("PetAccentColor")),
-                    appearance.hexToColor(config.getIniKey("PetOutlineColor")),
-                    appearance.hexToColor(config.getIniKey("PetEyeColor")),
-                    parseInt(config.getIniKey("PetHatId"), 0),
-                    parseInt(config.getIniKey("PetAccessoryId"), 0),
-                    parseInt(config.getIniKey("PetCreatureType"), 0),
+                    appearance.hexToColor(config.get("PetBodyColor")),
+                    appearance.hexToColor(config.get("PetAccentColor")),
+                    appearance.hexToColor(config.get("PetOutlineColor")),
+                    appearance.hexToColor(config.get("PetEyeColor")),
+                    parseInt(config.get("PetHatId"), 0),
+                    parseInt(config.get("PetAccessoryId"), 0),
+                    parseInt(config.get("PetCreatureType"), 0),
                     petName != null ? petName : DEFAULT_PET_NAME);
         }
     }
@@ -160,7 +160,7 @@ public final class PetRepository {
                 appearance.petName != null ? appearance.petName : DEFAULT_PET_NAME);
 
         try {
-            new ConfigureActivity(context).saveFiletoSD(getConfigPath(context), props);
+            PetConfigFile.saveMerged(new java.io.File(getConfigPath(context)), props);
             needs.markUpdated();
         } catch (IOException e) {
             Log.e(TAG, "No se pudo guardar el estado de la mascota", e);

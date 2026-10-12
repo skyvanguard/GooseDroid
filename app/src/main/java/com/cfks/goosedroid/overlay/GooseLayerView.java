@@ -8,7 +8,7 @@ import android.view.View;
 
 import com.cfks.goosedroid.GooseDesktop.GooseRenderer;
 import com.cfks.goosedroid.GooseDesktop.TheGoose;
-import com.cfks.goosedroid.SamEngine.Vector2;
+import com.cfks.goosedroid.core.Vec2;
 
 /**
  * Una de las dos capas del overlay.
@@ -117,7 +117,7 @@ public class GooseLayerView extends View {
         float worldY = toWorldY(event, 0);
 
         boolean isOnGoose = false;
-        Vector2 goosePos = TheGoose.getGoosePos();
+        Vec2 goosePos = TheGoose.getGoosePos();
         if (goosePos != null) {
             float dx = worldX - goosePos.x;
             float dy = worldY - goosePos.y;

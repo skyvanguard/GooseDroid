@@ -1,6 +1,6 @@
 package com.cfks.goosedroid.GooseDesktop;
 
-import com.cfks.goosedroid.SamEngine.*;
+import com.cfks.goosedroid.core.*;
 
 /**
  * Advanced skeletal rig for the goose.
@@ -14,7 +14,7 @@ public class GooseRig {
      * Represents a single bone/joint in the skeleton.
      */
     public static class Bone {
-        public Vector2 position;
+        public Vec2 position;
         public float rotation;
         public float length;
         public float radius;
@@ -22,12 +22,12 @@ public class GooseRig {
         public Bone(float radius, float length) {
             this.radius = radius;
             this.length = length;
-            this.position = Vector2.zero;
+            this.position = Vec2.ZERO;
             this.rotation = 0f;
         }
 
-        public Vector2 getEndPoint(Vector2 direction) {
-            return Vector2.add(position, Vector2.multiply(direction, length));
+        public Vec2 getEndPoint(Vec2 direction) {
+            return Vec2.add(position, Vec2.mul(direction, length));
         }
     }
 
@@ -77,19 +77,19 @@ public class GooseRig {
 
     // ============== COMPUTED POSITIONS ==============
 
-    public Vector2 underbodyCenter;
-    public Vector2 bodyCenter;
-    public Vector2 neckBase;
-    public Vector2 neckHeadPoint;
-    public Vector2 head1EndPoint;
-    public Vector2 head2EndPoint;
-    public Vector2 beakEnd;
-    public Vector2 leftEyePos;
-    public Vector2 rightEyePos;
-    public Vector2 leftWingPos;
-    public Vector2 rightWingPos;
-    public Vector2 tailPos;
-    public Vector2 tailEnd;
+    public Vec2 underbodyCenter;
+    public Vec2 bodyCenter;
+    public Vec2 neckBase;
+    public Vec2 neckHeadPoint;
+    public Vec2 head1EndPoint;
+    public Vec2 head2EndPoint;
+    public Vec2 beakEnd;
+    public Vec2 leftEyePos;
+    public Vec2 rightEyePos;
+    public Vec2 leftWingPos;
+    public Vec2 rightWingPos;
+    public Vec2 tailPos;
+    public Vec2 tailEnd;
 
     // Wing animation state
     private float wingFlapPhase = 0f;
@@ -122,12 +122,12 @@ public class GooseRig {
 
     // ============== SECONDARY MOTION ==============
 
-    private Vector2 tailLag = new Vector2(0, 0);      // Accumulated tail lag
-    private Vector2 wingLag = new Vector2(0, 0);      // Accumulated wing lag
+    private Vec2 tailLag = new Vec2(0, 0);      // Accumulated tail lag
+    private Vec2 wingLag = new Vec2(0, 0);      // Accumulated wing lag
     private float bellyWobble = 0f;                    // Belly wobble amount
     private float bellyWobbleVelocity = 0f;            // Belly wobble velocity
-    private Vector2 lastPosition = new Vector2(0, 0); // For calculating velocity
-    private Vector2 velocity = new Vector2(0, 0);     // Current movement velocity
+    private Vec2 lastPosition = new Vec2(0, 0); // For calculating velocity
+    private Vec2 velocity = new Vec2(0, 0);     // Current movement velocity
 
     // ============== EXPRESSION DETAILS ==============
 
@@ -195,10 +195,10 @@ public class GooseRig {
     /**
      * Update rig with full animation support.
      */
-    public void update(Vector2 position, float direction, float deltaTime) {
+    public void update(Vec2 position, float direction, float deltaTime) {
         // Calculate velocity for secondary motion
-        velocity = Vector2.multiply(Vector2.subtract(position, lastPosition), 1f / Math.max(deltaTime, 0.001f));
-        lastPosition = new Vector2(position.x, position.y);
+        velocity = Vec2.mul(Vec2.sub(position, lastPosition), 1f / Math.max(deltaTime, 0.001f));
+        lastPosition = new Vec2(position.x, position.y);
 
         // Update animations
         updateBreathing(deltaTime);
@@ -221,15 +221,15 @@ public class GooseRig {
         float squashScaleY = 1f - squashAmount * 0.15f + stretchAmount * 0.1f;
 
         // Calculate base vectors with squash/stretch applied
-        Vector2 basePos = new Vector2(position.x, position.y);
-        Vector2 scaleVec = new Vector2(1.3f * scale * squashScaleX, 0.4f * scale * squashScaleY);
+        Vec2 basePos = new Vec2(position.x, position.y);
+        Vec2 scaleVec = new Vec2(1.3f * scale * squashScaleX, 0.4f * scale * squashScaleY);
 
-        Vector2 forward = Vector2.GetFromAngleDegrees(direction);
-        forward = Vector2.multiply(forward, scaleVec);
-        Vector2 right = Vector2.GetFromAngleDegrees(direction + 90f);
-        right = Vector2.multiply(right, scaleVec);
+        Vec2 forward = Vec2.fromDegrees(direction);
+        forward = Vec2.mul(forward, scaleVec);
+        Vec2 right = Vec2.fromDegrees(direction + 90f);
+        right = Vec2.mul(right, scaleVec);
 
-        Vector2 up = new Vector2(0f, -1f);
+        Vec2 up = new Vec2(0f, -1f);
 
         // Apply breathing offset
         float breathOffset = (float) Math.sin(breathPhase) * BREATH_AMPLITUDE * scale;
@@ -238,81 +238,81 @@ public class GooseRig {
         float bodyElevation = (14f + breathOffset) * scale * poseHeightMod;
         float underbodyElevation = (9f + breathOffset * 0.5f + bellyWobble) * scale * poseHeightMod;
 
-        underbodyCenter = Vector2.add(basePos, Vector2.multiply(up, underbodyElevation));
-        bodyCenter = Vector2.add(basePos, Vector2.multiply(up, bodyElevation));
+        underbodyCenter = Vec2.add(basePos, Vec2.mul(up, underbodyElevation));
+        bodyCenter = Vec2.add(basePos, Vec2.mul(up, bodyElevation));
 
         // Calculate neck with pose modification
-        float neckHeight = SamMath.Lerp(20f, 10f, neckLerpPercent) * scale * poseNeckMod;
-        float neckExtend = SamMath.Lerp(3f, 16f, neckLerpPercent) * scale;
+        float neckHeight = MathUtil.lerp(20f, 10f, neckLerpPercent) * scale * poseNeckMod;
+        float neckExtend = MathUtil.lerp(3f, 16f, neckLerpPercent) * scale;
 
-        neckBase = Vector2.add(bodyCenter, Vector2.multiply(forward, 15f * scale));
-        neckHeadPoint = Vector2.add(
-            Vector2.add(neckBase, Vector2.multiply(forward, neckExtend)),
-            Vector2.multiply(up, neckHeight)
+        neckBase = Vec2.add(bodyCenter, Vec2.mul(forward, 15f * scale));
+        neckHeadPoint = Vec2.add(
+            Vec2.add(neckBase, Vec2.mul(forward, neckExtend)),
+            Vec2.mul(up, neckHeight)
         );
 
         // Calculate head positions
-        head1EndPoint = Vector2.subtract(
-            Vector2.add(neckHeadPoint, Vector2.multiply(forward, 3f * scale)),
-            Vector2.multiply(up, 1f * scale)
+        head1EndPoint = Vec2.sub(
+            Vec2.add(neckHeadPoint, Vec2.mul(forward, 3f * scale)),
+            Vec2.mul(up, 1f * scale)
         );
-        head2EndPoint = Vector2.add(head1EndPoint, Vector2.multiply(forward, 5f * scale));
+        head2EndPoint = Vec2.add(head1EndPoint, Vec2.mul(forward, 5f * scale));
 
         // Calculate beak
-        beakEnd = Vector2.add(head2EndPoint, Vector2.multiply(forward, 3f * scale));
+        beakEnd = Vec2.add(head2EndPoint, Vec2.mul(forward, 3f * scale));
 
         // Calculate eye positions with expression offset
-        Vector2 eyeOffset = getExpressionEyeOffset();
+        Vec2 eyeOffset = getExpressionEyeOffset();
         float eyeSpacing = 5f * scale;
         float eyeForward = 5f * scale;
         float eyeUp = 3f * scale;
 
-        Vector2 eyeBase = Vector2.add(
-            Vector2.add(neckHeadPoint, Vector2.multiply(up, eyeUp)),
-            Vector2.multiply(forward, eyeForward)
+        Vec2 eyeBase = Vec2.add(
+            Vec2.add(neckHeadPoint, Vec2.mul(up, eyeUp)),
+            Vec2.mul(forward, eyeForward)
         );
 
-        leftEyePos = Vector2.add(
-            Vector2.subtract(eyeBase, Vector2.multiply(right, eyeSpacing)),
+        leftEyePos = Vec2.add(
+            Vec2.sub(eyeBase, Vec2.mul(right, eyeSpacing)),
             eyeOffset
         );
-        rightEyePos = Vector2.add(
-            Vector2.add(eyeBase, Vector2.multiply(right, eyeSpacing)),
+        rightEyePos = Vec2.add(
+            Vec2.add(eyeBase, Vec2.mul(right, eyeSpacing)),
             eyeOffset
         );
 
         // Calculate wing positions
         updateWings(deltaTime);
         float wingAngle = getWingAngle();
-        Vector2 wingOffset = Vector2.multiply(up, 12f * scale);
+        Vec2 wingOffset = Vec2.mul(up, 12f * scale);
 
         // Left wing - on the left side of the body
-        leftWingPos = Vector2.add(
-            Vector2.subtract(bodyCenter, Vector2.multiply(right, 8f * scale)),
+        leftWingPos = Vec2.add(
+            Vec2.sub(bodyCenter, Vec2.mul(right, 8f * scale)),
             wingOffset
         );
 
         // Right wing - on the right side of the body
-        rightWingPos = Vector2.add(
-            Vector2.add(bodyCenter, Vector2.multiply(right, 8f * scale)),
+        rightWingPos = Vec2.add(
+            Vec2.add(bodyCenter, Vec2.mul(right, 8f * scale)),
             wingOffset
         );
 
         // Calculate tail position (behind the body) with secondary motion lag
         updateTail(deltaTime);
-        Vector2 tailOffset = Vector2.multiply(forward, -15f * scale);
-        tailPos = Vector2.add(bodyCenter, tailOffset);
+        Vec2 tailOffset = Vec2.mul(forward, -15f * scale);
+        tailPos = Vec2.add(bodyCenter, tailOffset);
 
         float tailAngle = getTailWagAngle();
-        Vector2 tailDirection = Vector2.add(
-            Vector2.multiply(forward, -1f),
-            Vector2.multiply(right, tailAngle * 0.3f)
+        Vec2 tailDirection = Vec2.add(
+            Vec2.mul(forward, -1f),
+            Vec2.mul(right, tailAngle * 0.3f)
         );
 
         // Apply tail lag for secondary motion
-        Vector2 tailLagOffset = Vector2.multiply(tailLag, scale * 0.5f);
-        tailEnd = Vector2.add(
-            Vector2.add(tailPos, Vector2.multiply(Vector2.Normalize(tailDirection), 12f * scale)),
+        Vec2 tailLagOffset = Vec2.mul(tailLag, scale * 0.5f);
+        tailEnd = Vec2.add(
+            Vec2.add(tailPos, Vec2.mul(Vec2.normalize(tailDirection), 12f * scale)),
             tailLagOffset
         );
 
@@ -385,7 +385,7 @@ public class GooseRig {
     /**
      * Simple update without delta time (backwards compatible).
      */
-    public void update(Vector2 position, float direction) {
+    public void update(Vec2 position, float direction) {
         update(position, direction, Time.deltaTime);
     }
 
@@ -417,7 +417,7 @@ public class GooseRig {
     }
 
     private void resetBlinkTimer() {
-        blinkTimer = SamMath.RandomRange(BLINK_INTERVAL_MIN, BLINK_INTERVAL_MAX);
+        blinkTimer = MathUtil.randomRange(BLINK_INTERVAL_MIN, BLINK_INTERVAL_MAX);
     }
 
     private void updateExpressionBlend(float deltaTime) {
@@ -442,7 +442,7 @@ public class GooseRig {
 
     private void updateScaleBlend(float deltaTime) {
         if (Math.abs(scale - targetScale) > 0.01f) {
-            scale = SamMath.Lerp(scale, targetScale, SCALE_BLEND_SPEED * deltaTime);
+            scale = MathUtil.lerp(scale, targetScale, SCALE_BLEND_SPEED * deltaTime);
         } else {
             scale = targetScale;
         }
@@ -454,7 +454,7 @@ public class GooseRig {
         float baseMod = getPoseNeckModifierForPose(currentPose);
         if (currentPose != targetPose) {
             float targetMod = getPoseNeckModifierForPose(targetPose);
-            return SamMath.Lerp(baseMod, targetMod, poseBlend);
+            return MathUtil.lerp(baseMod, targetMod, poseBlend);
         }
         return baseMod;
     }
@@ -475,7 +475,7 @@ public class GooseRig {
         float baseMod = getPoseHeightModifierForPose(currentPose);
         if (currentPose != targetPose) {
             float targetMod = getPoseHeightModifierForPose(targetPose);
-            return SamMath.Lerp(baseMod, targetMod, poseBlend);
+            return MathUtil.lerp(baseMod, targetMod, poseBlend);
         }
         return baseMod;
     }
@@ -494,24 +494,24 @@ public class GooseRig {
 
     // ============== EXPRESSION MODIFIERS ==============
 
-    private Vector2 getExpressionEyeOffset() {
-        Vector2 baseOffset = getExpressionEyeOffsetForExpression(currentExpression);
+    private Vec2 getExpressionEyeOffset() {
+        Vec2 baseOffset = getExpressionEyeOffsetForExpression(currentExpression);
         if (currentExpression != targetExpression) {
-            Vector2 targetOffset = getExpressionEyeOffsetForExpression(targetExpression);
-            return Vector2.Lerp(baseOffset, targetOffset, expressionBlend);
+            Vec2 targetOffset = getExpressionEyeOffsetForExpression(targetExpression);
+            return Vec2.lerp(baseOffset, targetOffset, expressionBlend);
         }
         return baseOffset;
     }
 
-    private Vector2 getExpressionEyeOffsetForExpression(Expression expr) {
+    private Vec2 getExpressionEyeOffsetForExpression(Expression expr) {
         switch (expr) {
-            case HAPPY:     return new Vector2(0, -1f * scale);
-            case SAD:       return new Vector2(0, 1.5f * scale);
-            case SLEEPY:    return new Vector2(0, 0.5f * scale);
-            case SURPRISED: return new Vector2(0, -1.5f * scale);
-            case ANGRY:     return new Vector2(0, 0.5f * scale);
-            case LOVE:      return new Vector2(0, 0);
-            default:        return Vector2.zero;
+            case HAPPY:     return new Vec2(0, -1f * scale);
+            case SAD:       return new Vec2(0, 1.5f * scale);
+            case SLEEPY:    return new Vec2(0, 0.5f * scale);
+            case SURPRISED: return new Vec2(0, -1.5f * scale);
+            case ANGRY:     return new Vec2(0, 0.5f * scale);
+            case LOVE:      return new Vec2(0, 0);
+            default:        return Vec2.ZERO;
         }
     }
 
@@ -662,16 +662,16 @@ public class GooseRig {
      */
     private void updateSquashStretch(float deltaTime) {
         // Smoothly interpolate towards target
-        squashAmount = SamMath.Lerp(squashAmount, targetSquash, SQUASH_RECOVERY_SPEED * deltaTime);
-        stretchAmount = SamMath.Lerp(stretchAmount, targetStretch, SQUASH_RECOVERY_SPEED * deltaTime);
+        squashAmount = MathUtil.lerp(squashAmount, targetSquash, SQUASH_RECOVERY_SPEED * deltaTime);
+        stretchAmount = MathUtil.lerp(stretchAmount, targetStretch, SQUASH_RECOVERY_SPEED * deltaTime);
 
         // Auto-recover to normal
-        targetSquash = SamMath.Lerp(targetSquash, 0f, squashRecoverySpeed * deltaTime);
-        targetStretch = SamMath.Lerp(targetStretch, 0f, squashRecoverySpeed * deltaTime);
+        targetSquash = MathUtil.lerp(targetSquash, 0f, squashRecoverySpeed * deltaTime);
+        targetStretch = MathUtil.lerp(targetStretch, 0f, squashRecoverySpeed * deltaTime);
 
         // Clamp values
-        squashAmount = SamMath.Clamp(squashAmount, 0f, MAX_SQUASH);
-        stretchAmount = SamMath.Clamp(stretchAmount, 0f, MAX_STRETCH);
+        squashAmount = MathUtil.clamp(squashAmount, 0f, MAX_SQUASH);
+        stretchAmount = MathUtil.clamp(stretchAmount, 0f, MAX_STRETCH);
     }
 
     /**
@@ -711,15 +711,15 @@ public class GooseRig {
      */
     private void updateSecondaryMotion(float deltaTime) {
         // Calculate movement delta for lag
-        float speed = Vector2.Distance(Vector2.zero, velocity);
+        float speed = Vec2.dist(Vec2.ZERO, velocity);
 
         // Update tail lag - tail follows with delay
-        Vector2 targetTailLag = Vector2.multiply(velocity, -TAIL_LAG_FACTOR);
-        tailLag = Vector2.Lerp(tailLag, targetTailLag, TAIL_RECOVERY_SPEED * deltaTime);
+        Vec2 targetTailLag = Vec2.mul(velocity, -TAIL_LAG_FACTOR);
+        tailLag = Vec2.lerp(tailLag, targetTailLag, TAIL_RECOVERY_SPEED * deltaTime);
 
         // Update wing lag - wings follow with slight delay
-        Vector2 targetWingLag = Vector2.multiply(velocity, -WING_LAG_FACTOR);
-        wingLag = Vector2.Lerp(wingLag, targetWingLag, WING_RECOVERY_SPEED * deltaTime);
+        Vec2 targetWingLag = Vec2.mul(velocity, -WING_LAG_FACTOR);
+        wingLag = Vec2.lerp(wingLag, targetWingLag, WING_RECOVERY_SPEED * deltaTime);
 
         // Update belly wobble (spring physics)
         // Spring force pulls back to center
@@ -736,20 +736,20 @@ public class GooseRig {
         }
 
         // Clamp wobble
-        bellyWobble = SamMath.Clamp(bellyWobble, -2f, 2f);
+        bellyWobble = MathUtil.clamp(bellyWobble, -2f, 2f);
     }
 
     /**
      * Get tail lag offset for rendering.
      */
-    public Vector2 getTailLag() {
+    public Vec2 getTailLag() {
         return tailLag;
     }
 
     /**
      * Get wing lag offset for rendering.
      */
-    public Vector2 getWingLag() {
+    public Vec2 getWingLag() {
         return wingLag;
     }
 
@@ -767,10 +767,10 @@ public class GooseRig {
      */
     private void updateExpressionDetails(float deltaTime) {
         // Update beak animation
-        beakOpenAmount = SamMath.Lerp(beakOpenAmount, targetBeakOpen, BEAK_ANIMATION_SPEED * deltaTime);
+        beakOpenAmount = MathUtil.lerp(beakOpenAmount, targetBeakOpen, BEAK_ANIMATION_SPEED * deltaTime);
 
         // Update brow curve
-        browCurve = SamMath.Lerp(browCurve, targetBrowCurve, BROW_ANIMATION_SPEED * deltaTime);
+        browCurve = MathUtil.lerp(browCurve, targetBrowCurve, BROW_ANIMATION_SPEED * deltaTime);
 
         // Auto-set targets based on expression
         switch (currentExpression) {
@@ -785,7 +785,7 @@ public class GooseRig {
             case SAD:
                 targetBeakOpen = 0f;    // Closed
                 targetBrowCurve = -0.6f; // Drooping
-                tearAmount = SamMath.Lerp(tearAmount, 1f, deltaTime);
+                tearAmount = MathUtil.lerp(tearAmount, 1f, deltaTime);
                 break;
             case ANGRY:
                 targetBeakOpen = 0.15f;
@@ -802,21 +802,21 @@ public class GooseRig {
             default:
                 targetBeakOpen = 0f;
                 targetBrowCurve = 0f;
-                tearAmount = SamMath.Lerp(tearAmount, 0f, deltaTime * 2f);
+                tearAmount = MathUtil.lerp(tearAmount, 0f, deltaTime * 2f);
                 break;
         }
 
         // Clamp values
-        beakOpenAmount = SamMath.Clamp(beakOpenAmount, 0f, 1f);
-        browCurve = SamMath.Clamp(browCurve, -1f, 1f);
-        tearAmount = SamMath.Clamp(tearAmount, 0f, 1f);
+        beakOpenAmount = MathUtil.clamp(beakOpenAmount, 0f, 1f);
+        browCurve = MathUtil.clamp(browCurve, -1f, 1f);
+        tearAmount = MathUtil.clamp(tearAmount, 0f, 1f);
     }
 
     /**
      * Manually set beak open amount (e.g., for eating animation).
      */
     public void setBeakOpen(float amount) {
-        targetBeakOpen = SamMath.Clamp(amount, 0f, 1f);
+        targetBeakOpen = MathUtil.clamp(amount, 0f, 1f);
     }
 
     /**
@@ -890,8 +890,8 @@ public class GooseRig {
         targetSquash = 0f;
         stretchAmount = 0f;
         targetStretch = 0f;
-        tailLag = new Vector2(0, 0);
-        wingLag = new Vector2(0, 0);
+        tailLag = new Vec2(0, 0);
+        wingLag = new Vec2(0, 0);
         bellyWobble = 0f;
         bellyWobbleVelocity = 0f;
         beakOpenAmount = 0f;

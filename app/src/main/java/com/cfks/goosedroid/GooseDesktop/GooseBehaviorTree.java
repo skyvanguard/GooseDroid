@@ -2,7 +2,7 @@ package com.cfks.goosedroid.GooseDesktop;
 
 import com.cfks.goosedroid.PetNeeds;
 import com.cfks.goosedroid.PetPersonality;
-import com.cfks.goosedroid.SamEngine.*;
+import com.cfks.goosedroid.core.*;
 
 /**
  * Behavior Tree implementation for the goose.
@@ -455,7 +455,7 @@ public class GooseBehaviorTree {
         int centerX = callback.getScreenWidth() / 2;
         int centerY = callback.getScreenHeight() / 2;
         if (callback.getPhysics() != null) {
-            callback.getPhysics().setTargetPos(new Vector2(centerX, centerY));
+            callback.getPhysics().setTargetPos(new Vec2(centerX, centerY));
         }
     }
 
@@ -472,7 +472,7 @@ public class GooseBehaviorTree {
         int idx = (int)(Math.random() * corners.length);
 
         if (callback.getPhysics() != null) {
-            callback.getPhysics().setTargetPos(new Vector2(corners[idx][0], corners[idx][1]));
+            callback.getPhysics().setTargetPos(new Vec2(corners[idx][0], corners[idx][1]));
         }
     }
 

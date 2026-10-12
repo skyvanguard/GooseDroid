@@ -11,7 +11,7 @@ import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.util.Log;
 
-import com.cfks.goosedroid.SamEngine.Vector2;
+import com.cfks.goosedroid.core.Vec2;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -102,7 +102,7 @@ public final class GooseNotes {
      * @param dirX dirección hacia el borde de donde viene (-1 izquierda, 1 derecha)
      * @param dirY dirección hacia el borde (-1 arriba)
      */
-    static void pickUp(float dirX, float dirY, Vector2 goosePosition) {
+    static void pickUp(float dirX, float dirY, Vec2 goosePosition) {
         carrier.pickUp(dirX, dirY, goosePosition);
     }
 
@@ -113,7 +113,7 @@ public final class GooseNotes {
         carrier.place(worldWidth, worldHeight, CARD_WIDTH / 2f, halfHeight);
     }
 
-    static void update(float deltaTime, Vector2 goosePosition) {
+    static void update(float deltaTime, Vec2 goosePosition) {
         carrier.update(deltaTime, goosePosition);
     }
 

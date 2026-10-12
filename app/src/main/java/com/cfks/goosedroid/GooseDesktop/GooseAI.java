@@ -1,9 +1,9 @@
 package com.cfks.goosedroid.GooseDesktop;
 
-import com.cfks.goosedroid.SamEngine.*;
+import com.cfks.goosedroid.core.*;
 import com.cfks.goosedroid.PetNeeds;
 import com.cfks.goosedroid.PetPersonality;
-import com.cfks.goosedroid.ConfigureActivity;
+import com.cfks.goosedroid.PetConfigFile;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -45,8 +45,8 @@ public class GooseAI {
         public int petCountToday = 0;
         public int feedCountToday = 0;
         public int playCountToday = 0;
-        public Vector2 lastExploredArea = Vector2.zero;
-        public List<Vector2> favoriteSpots = new ArrayList<>();
+        public Vec2 lastExploredArea = Vec2.ZERO;
+        public List<Vec2> favoriteSpots = new ArrayList<>();
         public float timeSinceLastInteraction = 0;
         public int consecutiveIgnoredCalls = 0;
 
@@ -85,7 +85,7 @@ public class GooseAI {
             timeSinceLastInteraction += deltaTime;
         }
 
-        public void addFavoriteSpot(Vector2 spot) {
+        public void addFavoriteSpot(Vec2 spot) {
             if (favoriteSpots.size() >= 5) {
                 favoriteSpots.remove(0);
             }
@@ -184,7 +184,7 @@ public class GooseAI {
     private float routineCheckTimer = 0;
 
     // Curiosity
-    private Vector2 curiosityTarget = null;
+    private Vec2 curiosityTarget = null;
     private float curiosityTimer = 0;
     private boolean isExploring = false;
 
@@ -210,14 +210,14 @@ public class GooseAI {
         GooseTasks.GooseTask.NabMouse,
         GooseTasks.GooseTask.NabMouse
     };
-    private final Deck taskPickerDeck = new Deck(gooseTaskWeightedList.length);
+    private final ShuffleBag taskPicker = new ShuffleBag(gooseTaskWeightedList.length);
 
     // ============== CALLBACK ==============
 
     public interface AICallback {
         GoosePhysics getPhysics();
         GooseTouchHandler getTouchHandler();
-        ConfigureActivity getConfig();
+        PetConfigFile getConfig();
         int getScreenWidth();
         int getScreenHeight();
         boolean isPetModeEnabled();
@@ -262,13 +262,7 @@ public class GooseAI {
 
     // ============== INITIALIZATION ==============
 
-    public void initTaskPicker(ConfigureActivity ca) {
-        if (!string2boolean(ca.getIniKey("AttackRandomly"))) {
-            int num = 2;
-            int num2 = taskPickerDeck.indices[0];
-            taskPickerDeck.indices[0] = taskPickerDeck.indices[num];
-            taskPickerDeck.indices[num] = num2;
-        }
+    public void initTaskPicker(PetConfigFile ca) {
         updateDayPeriod();
     }
 
@@ -548,7 +542,7 @@ public class GooseAI {
         nextEventCheck -= deltaTime;
         if (nextEventCheck <= 0) {
             // Check more frequently (every 3-8 seconds)
-            nextEventCheck = SamMath.RandomRange(3f, 8f);
+            nextEventCheck = MathUtil.randomRange(3f, 8f);
             maybeStartRandomEvent();
         }
 
@@ -833,9 +827,9 @@ public class GooseAI {
             case ZOOMIES:
                 // Run around crazily
                 if (eventTimer % 0.5f < deltaTime) {
-                    physics.setTargetPos(new Vector2(
-                        SamMath.RandomRange(50f, callback.getScreenWidth() - 50f),
-                        SamMath.RandomRange(50f, callback.getScreenHeight() - 50f)
+                    physics.setTargetPos(new Vec2(
+                        MathUtil.randomRange(50f, callback.getScreenWidth() - 50f),
+                        MathUtil.randomRange(50f, callback.getScreenHeight() - 50f)
                     ));
                 }
                 break;
@@ -843,30 +837,30 @@ public class GooseAI {
             case SPIN:
                 // Spin in place
                 float spinAngle = progress * 720f; // Two full rotations
-                physics.setTargetPos(Vector2.add(
+                physics.setTargetPos(Vec2.add(
                     physics.getPosition(),
-                    Vector2.multiply(Vector2.GetFromAngleDegrees(spinAngle), 5f)
+                    Vec2.mul(Vec2.fromDegrees(spinAngle), 5f)
                 ));
-                physics.setVelocity(Vector2.zero);
+                physics.setVelocity(Vec2.ZERO);
                 break;
 
             case SHAKE:
                 // Shake body (handled by renderer using this state)
-                physics.setVelocity(Vector2.zero);
+                physics.setVelocity(Vec2.ZERO);
                 break;
 
             case LOOK_AROUND:
                 // Look left and right
-                physics.setVelocity(Vector2.zero);
+                physics.setVelocity(Vec2.ZERO);
                 overrideExtendNeck = true;
                 break;
 
             case DANCE:
                 // Little dance - side to side
                 float danceOffset = (float) Math.sin(progress * Math.PI * 6) * 20f;
-                physics.setTargetPos(Vector2.add(
+                physics.setTargetPos(Vec2.add(
                     physics.getPosition(),
-                    new Vector2(danceOffset, 0)
+                    new Vec2(danceOffset, 0)
                 ));
                 break;
 
@@ -880,30 +874,30 @@ public class GooseAI {
             case YAWN:
             case STRETCH:
                 // Stay still, animation handled by renderer
-                physics.setVelocity(Vector2.zero);
+                physics.setVelocity(Vec2.ZERO);
                 overrideExtendNeck = progress > 0.3f && progress < 0.7f;
                 break;
 
             case CURIOUS_TILT:
                 // Head tilt
-                physics.setVelocity(Vector2.zero);
+                physics.setVelocity(Vec2.ZERO);
                 break;
 
             case WING_FLAP:
                 // Stay still, animation handled
-                physics.setVelocity(Vector2.zero);
+                physics.setVelocity(Vec2.ZERO);
                 break;
 
             // NEW EVENT BEHAVIORS
             case SINGING:
                 // Slight bobbing while singing
-                physics.setVelocity(Vector2.zero);
+                physics.setVelocity(Vec2.ZERO);
                 overrideExtendNeck = (int)(progress * 10) % 2 == 0;
                 break;
 
             case PLAY_DEAD:
                 // Fall over and stay still
-                physics.setVelocity(Vector2.zero);
+                physics.setVelocity(Vec2.ZERO);
                 // Occasional twitch to show "not really dead"
                 if (progress > 0.7f && Math.random() < 0.1f) {
                     callback.getTouchHandler().showEmoji("...");
@@ -912,7 +906,7 @@ public class GooseAI {
 
             case LAY_EGG:
                 // Crouch and concentrate
-                physics.setVelocity(Vector2.zero);
+                physics.setVelocity(Vec2.ZERO);
                 if (progress > 0.8f) {
                     // "Produced" the egg
                     callback.getTouchHandler().showEmoji("TADA!");
@@ -922,9 +916,9 @@ public class GooseAI {
             case FIGHT_REFLECTION:
                 // Aggressive movements toward nothing
                 float fightAngle = progress * 360f * 3f;
-                physics.setTargetPos(Vector2.add(
+                physics.setTargetPos(Vec2.add(
                     physics.getPosition(),
-                    Vector2.multiply(Vector2.GetFromAngleDegrees(fightAngle), 30f)
+                    Vec2.mul(Vec2.fromDegrees(fightAngle), 30f)
                 ));
                 if (Math.random() < 0.1f) {
                     Sound.HONCC();
@@ -935,19 +929,19 @@ public class GooseAI {
             case CHASE_INVISIBLE:
                 // Run erratically
                 if (eventTimer % 0.3f < deltaTime) {
-                    physics.setTargetPos(new Vector2(
-                        SamMath.RandomRange(100f, callback.getScreenWidth() - 100f),
-                        SamMath.RandomRange(100f, callback.getScreenHeight() - 100f)
+                    physics.setTargetPos(new Vec2(
+                        MathUtil.randomRange(100f, callback.getScreenWidth() - 100f),
+                        MathUtil.randomRange(100f, callback.getScreenHeight() - 100f)
                     ));
                 }
                 break;
 
             case MOONWALK:
                 // Walk backwards (reverse direction)
-                Vector2 moonwalkDir = Vector2.GetFromAngleDegrees(physics.getDirection() + 180f);
-                physics.setTargetPos(Vector2.add(
+                Vec2 moonwalkDir = Vec2.fromDegrees(physics.getDirection() + 180f);
+                physics.setTargetPos(Vec2.add(
                     physics.getPosition(),
-                    Vector2.multiply(moonwalkDir, 50f)
+                    Vec2.mul(moonwalkDir, 50f)
                 ));
                 physics.setSpeed(GooseTasks.SpeedTier.Walk);
                 break;
@@ -956,19 +950,19 @@ public class GooseAI {
                 // Quick forward lunge then stop
                 if (progress < 0.3f) {
                     physics.setSpeed(GooseTasks.SpeedTier.Run);
-                    physics.setTargetPos(Vector2.add(
+                    physics.setTargetPos(Vec2.add(
                         physics.getPosition(),
-                        Vector2.multiply(Vector2.GetFromAngleDegrees(physics.getDirection()), 100f)
+                        Vec2.mul(Vec2.fromDegrees(physics.getDirection()), 100f)
                     ));
                 } else {
-                    physics.setVelocity(Vector2.zero);
+                    physics.setVelocity(Vec2.ZERO);
                 }
                 break;
 
             case TROLL_NOTIFICATION:
             case VIBRATE_HONK:
                 // Mischievous look
-                physics.setVelocity(Vector2.zero);
+                physics.setVelocity(Vec2.ZERO);
                 break;
 
             default:
@@ -1013,7 +1007,7 @@ public class GooseAI {
 
         if (isExploring && curiosityTarget != null) {
             GoosePhysics physics = callback.getPhysics();
-            float dist = Vector2.Distance(physics.getPosition(), curiosityTarget);
+            float dist = Vec2.dist(physics.getPosition(), curiosityTarget);
 
             if (dist < 30f) {
                 // Reached target, remember this spot
@@ -1036,23 +1030,23 @@ public class GooseAI {
         float rand = (float) Math.random();
         if (rand < 0.25f) {
             // Top-left corner
-            curiosityTarget = new Vector2(100, 100);
+            curiosityTarget = new Vec2(100, 100);
         } else if (rand < 0.5f) {
             // Top-right corner
-            curiosityTarget = new Vector2(screenWidth - 100, 100);
+            curiosityTarget = new Vec2(screenWidth - 100, 100);
         } else if (rand < 0.75f) {
             // Bottom-left corner
-            curiosityTarget = new Vector2(100, screenHeight - 100);
+            curiosityTarget = new Vec2(100, screenHeight - 100);
         } else {
             // Bottom-right corner
-            curiosityTarget = new Vector2(screenWidth - 100, screenHeight - 100);
+            curiosityTarget = new Vec2(screenWidth - 100, screenHeight - 100);
         }
 
         // Avoid recently explored areas
         if (memory.lastExploredArea != null) {
-            if (Vector2.Distance(curiosityTarget, memory.lastExploredArea) < 200) {
+            if (Vec2.dist(curiosityTarget, memory.lastExploredArea) < 200) {
                 // Pick center instead
-                curiosityTarget = new Vector2(screenWidth / 2f, screenHeight / 2f);
+                curiosityTarget = new Vec2(screenWidth / 2f, screenHeight / 2f);
             }
         }
 
@@ -1070,7 +1064,7 @@ public class GooseAI {
 
     private void runWander() {
         GoosePhysics physics = callback.getPhysics();
-        ConfigureActivity ca = callback.getConfig();
+        PetConfigFile ca = callback.getConfig();
 
         float durationMultiplier = callback.isPetModeEnabled() ?
             PetPersonality.get().getWanderDurationMultiplier() : 1f;
@@ -1084,7 +1078,7 @@ public class GooseAI {
         // Express while wandering (every 2-5 seconds)
         if (Time.time - lastWanderExpressionTime > nextWanderExpressionInterval) {
             lastWanderExpressionTime = Time.time;
-            nextWanderExpressionInterval = SamMath.RandomRange(2f, 5f);
+            nextWanderExpressionInterval = MathUtil.randomRange(2f, 5f);
             doWanderExpression();
         }
 
@@ -1099,17 +1093,17 @@ public class GooseAI {
                     int idx = (int)(Math.random() * memory.favoriteSpots.size());
                     physics.setTargetPos(memory.favoriteSpots.get(idx));
                 } else {
-                    physics.setTargetPos(new Vector2(
-                        SamMath.RandomRange(50f, (float) callback.getScreenWidth() - 50f),
-                        SamMath.RandomRange(50f, (float) callback.getScreenHeight() - 50f)
+                    physics.setTargetPos(new Vec2(
+                        MathUtil.randomRange(50f, (float) callback.getScreenWidth() - 50f),
+                        MathUtil.randomRange(50f, (float) callback.getScreenHeight() - 50f)
                     ));
                 }
 
-                if (Vector2.Distance(physics.getPosition(), physics.getTargetPos()) > dist) {
-                    physics.setTargetPos(Vector2.add(
+                if (Vec2.dist(physics.getPosition(), physics.getTargetPos()) > dist) {
+                    physics.setTargetPos(Vec2.add(
                         physics.getPosition(),
-                        Vector2.multiply(
-                            Vector2.Normalize(Vector2.subtract(
+                        Vec2.mul(
+                            Vec2.normalize(Vec2.sub(
                                 physics.getTargetPos(), physics.getPosition())),
                             dist
                         )
@@ -1122,7 +1116,7 @@ public class GooseAI {
                         GooseTasks.SpeedTier.Run : GooseTasks.SpeedTier.Walk);
                 }
             } else {
-                physics.setVelocity(Vector2.zero);
+                physics.setVelocity(Vec2.ZERO);
 
                 // Do something while paused
                 if (Math.random() < 0.02f) {
@@ -1130,7 +1124,7 @@ public class GooseAI {
                 }
             }
         } else {
-            if (Vector2.Distance(physics.getPosition(), physics.getTargetPos()) < 20f) {
+            if (Vec2.dist(physics.getPosition(), physics.getTargetPos()) < 20f) {
                 taskWanderInfo.pauseStartTime = Time.time;
                 taskWanderInfo.pauseDuration = GooseTasks.WanderTask.getRandomPauseDuration();
                 wanderActionCount++;
@@ -1238,24 +1232,24 @@ public class GooseAI {
                 if (Time.time - taskCollectWindowInfo.waitStartTime > taskCollectWindowInfo.secsToWait) {
                     switch (taskCollectWindowInfo.screenDirection) {
                         case Left:
-                            physics.setTargetPos(new Vector2(
+                            physics.setTargetPos(new Vec2(
                                 physics.getTargetPos().x,
-                                SamMath.Lerp(physics.getPosition().y, (float)(screenHeight / 2),
-                                    SamMath.RandomRange(0.2f, 0.3f))
+                                MathUtil.lerp(physics.getPosition().y, (float)(screenHeight / 2),
+                                    MathUtil.randomRange(0.2f, 0.3f))
                             ));
                             break;
                         case Top:
-                            physics.setTargetPos(new Vector2(
-                                SamMath.Lerp(physics.getPosition().x, (float)(screenWidth / 2),
-                                    SamMath.RandomRange(0.2f, 0.3f)),
+                            physics.setTargetPos(new Vec2(
+                                MathUtil.lerp(physics.getPosition().x, (float)(screenWidth / 2),
+                                    MathUtil.randomRange(0.2f, 0.3f)),
                                 physics.getTargetPos().y
                             ));
                             break;
                         case Right:
-                            physics.setTargetPos(new Vector2(
+                            physics.setTargetPos(new Vec2(
                                 physics.getTargetPos().x,
-                                SamMath.Lerp(physics.getPosition().y, (float)(screenHeight / 2),
-                                    SamMath.RandomRange(0.2f, 0.3f))
+                                MathUtil.lerp(physics.getPosition().y, (float)(screenHeight / 2),
+                                    MathUtil.randomRange(0.2f, 0.3f))
                             ));
                             break;
                     }
@@ -1266,9 +1260,9 @@ public class GooseAI {
                 break;
             case DraggingWindowBack:
                 if (hasReachedTargetOrTimedOut(physics)) {
-                    physics.setTargetPos(Vector2.add(
+                    physics.setTargetPos(Vec2.add(
                         physics.getPosition(),
-                        Vector2.multiply(Vector2.GetFromAngleDegrees(physics.getDirection() + 180f), 40f)
+                        Vec2.mul(Vec2.fromDegrees(physics.getDirection() + 180f), 40f)
                     ));
                     setTask(GooseTasks.GooseTask.Wander, false);
                 } else {
@@ -1291,9 +1285,9 @@ public class GooseAI {
                 break;
             case RunningOffscreen:
                 if (hasReachedTargetOrTimedOut(physics)) {
-                    physics.setTargetPos(new Vector2(
-                        SamMath.RandomRange(0f, (float) screenWidth),
-                        SamMath.RandomRange(0f, (float) screenHeight)
+                    physics.setTargetPos(new Vec2(
+                        MathUtil.randomRange(0f, (float) screenWidth),
+                        MathUtil.randomRange(0f, (float) screenHeight)
                     ));
                     taskTrackMudInfo.nextDirChangeTime = Time.time +
                         GooseTasks.TrackMudTask.getDirChangeInterval();
@@ -1305,19 +1299,19 @@ public class GooseAI {
                 }
                 break;
             case RunningWandering:
-                if (Vector2.Distance(physics.getPosition(), physics.getTargetPos()) < 5f ||
+                if (Vec2.dist(physics.getPosition(), physics.getTargetPos()) < 5f ||
                     Time.time > taskTrackMudInfo.nextDirChangeTime) {
-                    physics.setTargetPos(new Vector2(
-                        SamMath.RandomRange(0f, (float) screenWidth),
-                        SamMath.RandomRange(0f, (float) screenHeight)
+                    physics.setTargetPos(new Vec2(
+                        MathUtil.randomRange(0f, (float) screenWidth),
+                        MathUtil.randomRange(0f, (float) screenHeight)
                     ));
                     taskTrackMudInfo.nextDirChangeTime = Time.time +
                         GooseTasks.TrackMudTask.getDirChangeInterval();
                 }
                 if (Time.time > taskTrackMudInfo.timeToStopRunning) {
-                    Vector2 newTarget = Vector2.add(physics.getPosition(), new Vector2(30f, 3f));
-                    newTarget.x = SamMath.Clamp(newTarget.x, 55f, (float)(screenWidth - 55));
-                    newTarget.y = SamMath.Clamp(newTarget.y, 80f, (float)(screenHeight - 80));
+                    Vec2 newTarget = Vec2.add(physics.getPosition(), new Vec2(30f, 3f));
+                    newTarget.x = MathUtil.clamp(newTarget.x, 55f, (float)(screenWidth - 55));
+                    newTarget.y = MathUtil.clamp(newTarget.y, 80f, (float)(screenHeight - 80));
                     physics.setTargetPos(newTarget);
                     setTask(GooseTasks.GooseTask.Wander, false);
                 }
@@ -1332,12 +1326,12 @@ public class GooseAI {
 
         if (sleepStartTime == 0) {
             sleepStartTime = Time.time;
-            physics.setVelocity(Vector2.zero);
+            physics.setVelocity(Vec2.ZERO);
             // Adjust duration by tiredness
             sleepDuration = 5f + (100f - PetNeeds.get().energy) * 0.05f;
         }
 
-        physics.setVelocity(Vector2.zero);
+        physics.setVelocity(Vec2.ZERO);
         PetNeeds.get().energy = Math.min(100, PetNeeds.get().energy + 0.5f * Time.deltaTime);
 
         if (Time.time - sleepStartTime > sleepDuration || PetNeeds.get().energy >= 100) {
@@ -1354,12 +1348,12 @@ public class GooseAI {
 
         if (eatStartTime == 0) {
             eatStartTime = Time.time;
-            physics.setVelocity(Vector2.zero);
+            physics.setVelocity(Vec2.ZERO);
             // Adjust duration by hunger
             eatDuration = 2f + PetNeeds.get().hunger * 0.02f;
         }
 
-        physics.setVelocity(Vector2.zero);
+        physics.setVelocity(Vec2.ZERO);
         overrideExtendNeck = true;
 
         // Pecking animation timing
@@ -1389,9 +1383,9 @@ public class GooseAI {
 
         float elapsed = (float) (Time.time - playStartTime);
         float angle = elapsed * 180f;
-        physics.setTargetPos(Vector2.add(
+        physics.setTargetPos(Vec2.add(
             physics.getPosition(),
-            Vector2.multiply(Vector2.GetFromAngleDegrees(angle), 50f)
+            Vec2.mul(Vec2.fromDegrees(angle), 50f)
         ));
 
         // Occasionally honk while playing
@@ -1418,9 +1412,9 @@ public class GooseAI {
 
         // Move slowly and aimlessly
         if (Math.random() < 0.01) {
-            physics.setTargetPos(Vector2.add(
+            physics.setTargetPos(Vec2.add(
                 physics.getPosition(),
-                new Vector2(SamMath.RandomRange(-30f, 30f), SamMath.RandomRange(-30f, 30f))
+                new Vec2(MathUtil.randomRange(-30f, 30f), MathUtil.randomRange(-30f, 30f))
             ));
         }
 
@@ -1441,7 +1435,7 @@ public class GooseAI {
 
         // Occasionally stop and look around hoping for attention
         if (Math.random() < 0.02) {
-            physics.setVelocity(Vector2.zero);
+            physics.setVelocity(Vec2.ZERO);
             callback.getTouchHandler().showEmoji("?");
         }
 
@@ -1483,9 +1477,9 @@ public class GooseAI {
 
         // Run around excitedly
         if (Math.random() < 0.03) {
-            physics.setTargetPos(Vector2.add(
+            physics.setTargetPos(Vec2.add(
                 physics.getPosition(),
-                new Vector2(SamMath.RandomRange(-100f, 100f), SamMath.RandomRange(-100f, 100f))
+                new Vec2(MathUtil.randomRange(-100f, 100f), MathUtil.randomRange(-100f, 100f))
             ));
         }
 
@@ -1508,7 +1502,7 @@ public class GooseAI {
     /**
      * Called when dragging ends - react to being released.
      */
-    public void onDragEnd(Vector2 releasePosition) {
+    public void onDragEnd(Vec2 releasePosition) {
         if (callback == null) return;
 
         // React based on where released
@@ -1541,7 +1535,7 @@ public class GooseAI {
         GoosePhysics physics = callback.getPhysics();
         physics.setSpeed(GooseTasks.SpeedTier.Walk);
 
-        Vector2 screenCenter = new Vector2(
+        Vec2 screenCenter = new Vec2(
             callback.getScreenWidth() / 2f,
             callback.getScreenHeight() / 2f
         );
@@ -1553,7 +1547,7 @@ public class GooseAI {
         }
 
         // Termina al llegar al centro o tras un tiempo máximo
-        if (Vector2.Distance(physics.getPosition(), screenCenter) < 100f
+        if (Vec2.dist(physics.getPosition(), screenCenter) < 100f
                 || Time.time - lastSeekingTime > SEEKING_MAX_SECONDS) {
             setTask(GooseTasks.GooseTask.Wander, false);
         }
@@ -1568,7 +1562,7 @@ public class GooseAI {
 
     private void runBeingPetted() {
         GoosePhysics physics = callback.getPhysics();
-        physics.setVelocity(Vector2.zero);
+        physics.setVelocity(Vec2.ZERO);
         pettingTime += Time.deltaTime;
 
         // More varied reactions based on petting duration
@@ -1620,7 +1614,7 @@ public class GooseAI {
     private double stageStartTime = 0f;
 
     private boolean hasReachedTargetOrTimedOut(GoosePhysics physics) {
-        return Vector2.Distance(physics.getPosition(), physics.getTargetPos()) < EDGE_REACHED_DISTANCE
+        return Vec2.dist(physics.getPosition(), physics.getTargetPos()) < EDGE_REACHED_DISTANCE
             || Time.time - stageStartTime > STAGE_TIMEOUT_SECONDS;
     }
 
@@ -1633,20 +1627,20 @@ public class GooseAI {
         int distToLeft = (int) physics.getPosition().x;
         GooseTasks.CollectWindowTask.ScreenDirection result =
             GooseTasks.CollectWindowTask.ScreenDirection.Left;
-        physics.setTargetPos(new Vector2(OFFSCREEN_EDGE_INSET,
-            SamMath.Lerp(physics.getPosition().y, (float)(screenHeight / 2), 0.4f)));
+        physics.setTargetPos(new Vec2(OFFSCREEN_EDGE_INSET,
+            MathUtil.lerp(physics.getPosition().y, (float)(screenHeight / 2), 0.4f)));
 
         if (distToLeft > screenWidth / 2) {
             distToLeft = screenWidth - (int) physics.getPosition().x;
             result = GooseTasks.CollectWindowTask.ScreenDirection.Right;
-            physics.setTargetPos(new Vector2((float) screenWidth - OFFSCREEN_EDGE_INSET,
-                SamMath.Lerp(physics.getPosition().y, (float)(screenHeight / 2), 0.4f)));
+            physics.setTargetPos(new Vec2((float) screenWidth - OFFSCREEN_EDGE_INSET,
+                MathUtil.lerp(physics.getPosition().y, (float)(screenHeight / 2), 0.4f)));
         }
 
         if (canExitTop && (float) distToLeft > physics.getPosition().y) {
             result = GooseTasks.CollectWindowTask.ScreenDirection.Top;
-            physics.setTargetPos(new Vector2(
-                SamMath.Lerp(physics.getPosition().x, (float)(screenWidth / 2), 0.4f),
+            physics.setTargetPos(new Vec2(
+                MathUtil.lerp(physics.getPosition().x, (float)(screenWidth / 2), 0.4f),
                 OFFSCREEN_EDGE_INSET));
         }
 
@@ -1654,10 +1648,10 @@ public class GooseAI {
     }
 
     private void chooseNextTask() {
-        ConfigureActivity ca = callback.getConfig();
+        PetConfigFile ca = callback.getConfig();
 
-        if (!string2boolean(ca.getIniKey("AttackRandomly")) &&
-            Time.time < Float.parseFloat(ca.getIniKey("FirstWanderTimeSeconds")) + 1f) {
+        if (!string2boolean(ca.get("AttackRandomly")) &&
+            Time.time < Float.parseFloat(ca.get("FirstWanderTimeSeconds")) + 1f) {
             setTask(GooseTasks.GooseTask.TrackMud, true);
             return;
         }
@@ -1669,10 +1663,10 @@ public class GooseAI {
         }
 
         // NabMouse no está implementado en Android: nunca se elige.
-        GooseTasks.GooseTask task = gooseTaskWeightedList[taskPickerDeck.Next()];
+        GooseTasks.GooseTask task = gooseTaskWeightedList[taskPicker.next()];
         for (int i = 0; i < gooseTaskWeightedList.length
                 && task == GooseTasks.GooseTask.NabMouse; i++) {
-            task = gooseTaskWeightedList[taskPickerDeck.Next()];
+            task = gooseTaskWeightedList[taskPicker.next()];
         }
         if (task == GooseTasks.GooseTask.NabMouse) {
             task = GooseTasks.GooseTask.Wander;
@@ -1755,7 +1749,7 @@ public class GooseAI {
 
         currentTask = task;
         GoosePhysics physics = callback.getPhysics();
-        ConfigureActivity ca = callback.getConfig();
+        PetConfigFile ca = callback.getConfig();
 
         switch (task) {
             case Wander:
@@ -1764,9 +1758,9 @@ public class GooseAI {
                 taskWanderInfo.pauseStartTime = -1f;
                 taskWanderInfo.wanderingStartTime = Time.time;
                 taskWanderInfo.wanderingDuration = GooseTasks.WanderTask.getRandomWanderDuration(
-                    Float.parseFloat(ca.getIniKey("FirstWanderTimeSeconds")),
-                    Float.parseFloat(ca.getIniKey("MinWanderingTimeSeconds")),
-                    Float.parseFloat(ca.getIniKey("MaxWanderingTimeSeconds"))
+                    Float.parseFloat(ca.get("FirstWanderTimeSeconds")),
+                    Float.parseFloat(ca.get("MinWanderingTimeSeconds")),
+                    Float.parseFloat(ca.get("MaxWanderingTimeSeconds"))
                 );
                 break;
             case NabMouse:
@@ -1819,7 +1813,7 @@ public class GooseAI {
      * Set a target position for the goose to move towards.
      * Used by minigames and external triggers.
      */
-    public void setTarget(Vector2 target) {
+    public void setTarget(Vec2 target) {
         if (target != null && callback != null && callback.getPhysics() != null) {
             callback.getPhysics().setTargetPos(target);
         }

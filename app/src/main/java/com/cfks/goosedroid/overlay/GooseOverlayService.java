@@ -24,7 +24,7 @@ import android.view.WindowManager;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
-import com.cfks.goosedroid.ConfigureActivity;
+import com.cfks.goosedroid.PetConfigFile;
 import com.cfks.goosedroid.GooseDesktop.GooseRenderer;
 import com.cfks.goosedroid.GooseDesktop.TheGoose;
 import com.cfks.goosedroid.MainActivity;
@@ -32,8 +32,8 @@ import com.cfks.goosedroid.PetNeeds;
 import com.cfks.goosedroid.PetRepository;
 import com.cfks.goosedroid.PetWidget;
 import com.cfks.goosedroid.R;
-import com.cfks.goosedroid.SamEngine.Time;
-import com.cfks.goosedroid.SamEngine.Vector2;
+import com.cfks.goosedroid.core.Time;
+import com.cfks.goosedroid.core.Vec2;
 
 import java.io.IOException;
 
@@ -237,12 +237,12 @@ public class GooseOverlayService extends Service implements GooseLayerView.Host 
     // ============== VENTANAS ==============
 
     private void showOverlay() throws IOException {
-        ConfigureActivity config = PetRepository.readConfig(this);
+        PetConfigFile config = PetRepository.readConfig(this);
         PetRepository.ensureLoaded(this);
         PetNeeds.get().updateOfflineTime();
 
-        TheGoose.WorldScale = clampWorldScale(parseWorldScale(config.getIniKey("DrawSize")));
-        String touchable = config.getIniKey("TouchableEnabled");
+        TheGoose.WorldScale = clampWorldScale(parseWorldScale(config.get("DrawSize")));
+        String touchable = config.get("TouchableEnabled");
         isTouchEnabled = touchable == null || Boolean.parseBoolean(touchable.trim().toLowerCase());
 
         worldView = new GooseLayerView(this, GooseRenderer.Layer.WORLD, this);
@@ -275,7 +275,7 @@ public class GooseOverlayService extends Service implements GooseLayerView.Host 
         startFrameLoop();
     }
 
-    private ConfigureActivity pendingConfig;
+    private PetConfigFile pendingConfig;
 
     private WindowManager.LayoutParams createBaseParams() {
         WindowManager.LayoutParams params = new WindowManager.LayoutParams();
@@ -346,7 +346,7 @@ public class GooseOverlayService extends Service implements GooseLayerView.Host 
 
     /** Mantiene la ventana chica sobre el ganso. */
     private void followGoose() {
-        Vector2 pos = TheGoose.getGoosePos();
+        Vec2 pos = TheGoose.getGoosePos();
         if (pos == null || gooseView == null) return;
 
         int size = computeGooseWindowSize();

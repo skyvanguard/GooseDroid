@@ -2,7 +2,7 @@ package com.cfks.goosedroid.GooseDesktop;
 
 import android.graphics.*;
 import com.cfks.goosedroid.PetNeeds;
-import com.cfks.goosedroid.SamEngine.*;
+import com.cfks.goosedroid.core.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -108,8 +108,8 @@ public class MiniGames {
         void onGameStarted(GameType game);
         void onGameEnded(GameType game, int score, boolean won);
         void onScoreChanged(int newScore);
-        Vector2 getGoosePosition();
-        void setGooseTarget(Vector2 target);
+        Vec2 getGoosePosition();
+        void setGooseTarget(Vec2 target);
         void triggerHappiness(float amount);
     }
 
@@ -404,7 +404,7 @@ public class MiniGames {
 
         // Move goose towards target
         if (callback != null) {
-            callback.setGooseTarget(new Vector2(x, y));
+            callback.setGooseTarget(new Vec2(x, y));
         }
     }
 

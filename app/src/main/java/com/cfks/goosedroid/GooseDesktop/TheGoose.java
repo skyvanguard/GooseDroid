@@ -5,7 +5,7 @@ import static com.cfks.goosedroid.MainActivity.string2boolean;
 import android.content.*;
 import android.graphics.*;
 import com.cfks.goosedroid.*;
-import com.cfks.goosedroid.SamEngine.*;
+import com.cfks.goosedroid.core.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -272,7 +272,7 @@ public class TheGoose implements
 
     private static Canvas canvas;
     private static Context ctx;
-    private static ConfigureActivity ca;
+    private static PetConfigFile ca;
     private static int screenWidth;
     private static int screenHeight;
 
@@ -320,7 +320,7 @@ public class TheGoose implements
 
     // ============== TRACKING ==============
 
-    private static Vector2 lastPosition = new Vector2(0, 0);
+    private static Vec2 lastPosition = new Vec2(0, 0);
     private static GooseTasks.GooseTask lastTask = null;
     private static PetNeeds.MoodState lastMood = null;
     private static long lastAutoSave = 0;
@@ -337,7 +337,7 @@ public class TheGoose implements
     /**
      * Initialize the goose system.
      */
-    public static void Init(Context context, ConfigureActivity config,
+    public static void Init(Context context, PetConfigFile config,
                             int worldWidth, int worldHeight) {
         lifecycleState = LifecycleState.INITIALIZING;
 
@@ -368,7 +368,7 @@ public class TheGoose implements
         stats.sessionStartTime = System.currentTimeMillis();
 
         // Initialize sound
-        Sound.Init(ctx, string2boolean(ca.getIniKey("SilenceSounds")));
+        Sound.Init(ctx, string2boolean(ca.get("SilenceSounds")));
 
         // Initialize trolling system
         GooseTrolling.init(ctx);
@@ -548,7 +548,7 @@ public class TheGoose implements
         lastTask = null;
         lastMood = null;
         lastAutoSave = System.currentTimeMillis();
-        lastPosition = new Vector2(0, 0);
+        lastPosition = new Vec2(0, 0);
         behaviorTree = null;
         BodyColor = DEFAULT_BODY_COLOR;
         GooseVisualEffects.clearAll();
@@ -592,11 +592,11 @@ public class TheGoose implements
         screenHeight = worldHeight;
         if (physics != null) {
             physics.setScreenBounds(worldWidth, worldHeight);
-            Vector2 pos = physics.getPosition();
-            physics.setPosition(new Vector2(
-                    SamMath.Clamp(pos.x, 0f, (float) worldWidth),
-                    SamMath.Clamp(pos.y, 0f, (float) worldHeight)));
-            physics.setTargetPos(new Vector2(worldWidth / 2f, worldHeight / 2f));
+            Vec2 pos = physics.getPosition();
+            physics.setPosition(new Vec2(
+                    MathUtil.clamp(pos.x, 0f, (float) worldWidth),
+                    MathUtil.clamp(pos.y, 0f, (float) worldHeight)));
+            physics.setTargetPos(new Vec2(worldWidth / 2f, worldHeight / 2f));
         }
         MiniGames.setScreenSize(worldWidth, worldHeight);
     }
@@ -616,7 +616,7 @@ public class TheGoose implements
             touchHandler.cancelTouch();
         }
         if (physics != null && physics.getState() == GoosePhysics.PhysicsState.DRAGGED) {
-            physics.endDrag(Vector2.zero);
+            physics.endDrag(Vec2.ZERO);
         }
         if (ai != null) {
             ai.setTask(GooseTasks.GooseTask.Wander, false);
@@ -669,7 +669,7 @@ public class TheGoose implements
 
         try {
             for (Achievement a : Achievement.values()) {
-                String saved = ca.getIniKey(ACHIEVEMENT_KEY_PREFIX + a.name());
+                String saved = ca.get(ACHIEVEMENT_KEY_PREFIX + a.name());
                 if (saved == null) continue;
                 String[] parts = saved.split(":");
                 if (parts.length != 2) continue;
@@ -680,16 +680,16 @@ public class TheGoose implements
             }
 
             // Load statistics
-            String playTime = ca.getIniKey("StatTotalPlayTime");
+            String playTime = ca.get("StatTotalPlayTime");
             if (playTime != null) stats.totalPlayTimeMs = Long.parseLong(playTime);
 
-            String totalPets = ca.getIniKey("StatTotalPets");
+            String totalPets = ca.get("StatTotalPets");
             if (totalPets != null) stats.totalPets = Integer.parseInt(totalPets);
 
-            String totalBoops = ca.getIniKey("StatTotalBoops");
+            String totalBoops = ca.get("StatTotalBoops");
             if (totalBoops != null) stats.totalBoops = Integer.parseInt(totalBoops);
 
-            String highestCombo = ca.getIniKey("StatHighestCombo");
+            String highestCombo = ca.get("StatHighestCombo");
             if (highestCombo != null) stats.highestCombo = Integer.parseInt(highestCombo);
 
         } catch (NumberFormatException e) {
@@ -843,7 +843,7 @@ public class TheGoose implements
     private static void updateRig() {
         // Update neck lerp
         int extendNeck = (ai.isOverrideExtendNeck() || physics.getCurrentSpeed() >= 200f) ? 1 : 0;
-        float neckLerp = SamMath.Lerp(rig.getNeckLerpPercent(), (float) extendNeck, 0.075f);
+        float neckLerp = MathUtil.lerp(rig.getNeckLerpPercent(), (float) extendNeck, 0.075f);
         rig.setNeckLerpPercent(neckLerp);
 
         // Update expressions and poses
@@ -1040,7 +1040,7 @@ public class TheGoose implements
         y += lineHeight;
 
         // Position
-        Vector2 pos = physics.getPosition();
+        Vec2 pos = physics.getPosition();
         canvas.drawText("Pos: " + String.format("%.0f, %.0f", pos.x, pos.y), x, y, debugPaint);
         y += lineHeight;
 
@@ -1093,10 +1093,10 @@ public class TheGoose implements
     }
 
     private static void trackDistance() {
-        Vector2 currentPos = physics.getPosition();
-        float dist = Vector2.Distance(lastPosition, currentPos);
+        Vec2 currentPos = physics.getPosition();
+        float dist = Vec2.dist(lastPosition, currentPos);
         stats.totalDistanceTraveled += dist;
-        lastPosition = new Vector2(currentPos.x, currentPos.y);
+        lastPosition = new Vec2(currentPos.x, currentPos.y);
     }
 
     private static void updateHappinessTracking(float deltaTime) {
@@ -1179,7 +1179,7 @@ public class TheGoose implements
             com.cfks.goosedroid.brain.BrainController.requestThought(
                     com.cfks.goosedroid.brain.BrainTrigger.Kind.IDLE_THOUGHT, "");
             timeSinceThought = 0;
-            nextThoughtTime = SamMath.RandomRange(THOUGHT_INTERVAL_MIN, THOUGHT_INTERVAL_MAX);
+            nextThoughtTime = MathUtil.randomRange(THOUGHT_INTERVAL_MIN, THOUGHT_INTERVAL_MAX);
         }
 
         com.cfks.goosedroid.brain.BrainController.onTick(deltaTime);
@@ -1560,7 +1560,7 @@ public class TheGoose implements
      */
     public static void cheatTeleportCenter() {
         if (physics != null) {
-            physics.teleport(new Vector2(screenWidth / 2f, screenHeight / 2f));
+            physics.teleport(new Vec2(screenWidth / 2f, screenHeight / 2f));
         }
     }
 
@@ -1614,7 +1614,7 @@ public class TheGoose implements
 
         touchHandler.onTouchStart(x, y);
         stats.totalTouches++;
-        broadcastEvent(EventType.TOUCHED, new Vector2(x, y));
+        broadcastEvent(EventType.TOUCHED, new Vec2(x, y));
 
         // Track easter egg taps
         GooseEasterEggs.recordTap();
@@ -1724,8 +1724,8 @@ public class TheGoose implements
         return touchHandler != null ? touchHandler.getCurrentEmoji() : "";
     }
 
-    public static Vector2 getGoosePos() {
-        return physics != null ? physics.getPosition() : new Vector2(0, 0);
+    public static Vec2 getGoosePos() {
+        return physics != null ? physics.getPosition() : new Vec2(0, 0);
     }
 
     public static GoosePhysics getGoosePhysics() {
@@ -1800,7 +1800,7 @@ public class TheGoose implements
     }
 
     @Override
-    public ConfigureActivity getConfig() {
+    public PetConfigFile getConfig() {
         return ca;
     }
 
@@ -1824,15 +1824,15 @@ public class TheGoose implements
     }
 
     @Override
-    public void onPositionChange(Vector2 newPos) {
+    public void onPositionChange(Vec2 newPos) {
         if (physics != null) {
             physics.setPosition(newPos);
         }
     }
 
     @Override
-    public Vector2 getPosition() {
-        return physics != null ? physics.getPosition() : new Vector2(0, 0);
+    public Vec2 getPosition() {
+        return physics != null ? physics.getPosition() : new Vec2(0, 0);
     }
 
     @Override
@@ -1992,12 +1992,12 @@ public class TheGoose implements
     }
 
     @Override
-    public Vector2 getGoosePosition() {
-        return physics != null ? physics.getPosition() : new Vector2(screenWidth / 2, screenHeight / 2);
+    public Vec2 getGoosePosition() {
+        return physics != null ? physics.getPosition() : new Vec2(screenWidth / 2, screenHeight / 2);
     }
 
     @Override
-    public void setGooseTarget(Vector2 target) {
+    public void setGooseTarget(Vec2 target) {
         if (ai != null) {
             ai.setTarget(target);
         }

@@ -1,4 +1,4 @@
-package com.cfks.goosedroid.SamEngine;
+package com.cfks.goosedroid.core;
 
 /**
  * Reloj del juego.

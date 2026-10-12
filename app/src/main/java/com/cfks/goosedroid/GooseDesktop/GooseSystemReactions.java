@@ -8,7 +8,7 @@ import android.util.Log;
 
 import com.cfks.goosedroid.PetNeeds;
 import com.cfks.goosedroid.PetPersonality;
-import com.cfks.goosedroid.SamEngine.Time;
+import com.cfks.goosedroid.core.Time;
 
 import java.util.Calendar;
 import java.util.Random;

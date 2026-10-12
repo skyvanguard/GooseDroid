@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.cfks.goosedroid.GooseDesktop.TheGoose;
 import com.cfks.goosedroid.overlay.GooseOverlayService;
 
+import java.io.File;
 import java.util.*;
 
 import com.google.android.material.button.MaterialButton;
@@ -56,10 +57,10 @@ public class MainActivity extends AppCompatActivity {
     private Handler petStatusHandler;
 
     private String ConfigFilePath = "";
-    private PermissionRequest permissionRequest;
     private boolean isTouchable = true;
     private boolean isSyncingOverlaySwitch = false;
     private static final int REQUEST_POST_NOTIFICATIONS = 5005;
+    private static final int REQUEST_OVERLAY_PERMISSION = 5003;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,7 +84,6 @@ public class MainActivity extends AppCompatActivity {
         SaveConfig = findViewById(R.id.SaveConfig);
         Update = findViewById(R.id.Update);
 
-        permissionRequest = new PermissionRequest(this);
         loadConfigFile();
 
         // Initialize notification manager
@@ -100,10 +100,10 @@ public class MainActivity extends AppCompatActivity {
                 Utils.showToast(MainActivity.this, getText(R.string.GooseDroidDisable));
                 return;
             }
-            if (!permissionRequest.hasOverlayPermission()) {
+            if (!OverlayPermission.isGranted(MainActivity.this)) {
                 GooseDroid.setChecked(false);
                 Utils.showToast(MainActivity.this, getText(R.string.PleaseEnableFloatingWindowPermission));
-                permissionRequest.requestOverlayPermission();
+                OverlayPermission.openSettings(MainActivity.this, REQUEST_OVERLAY_PERMISSION);
                 return;
             }
             requestNotificationPermissionIfNeeded();
@@ -407,11 +407,11 @@ public class MainActivity extends AppCompatActivity {
      */
     private void loadPetState() {
         try {
-            ConfigureActivity ca = new ConfigureActivity(this);
-            ca.readFromSD(ConfigFilePath);
+            PetConfigFile ca = new PetConfigFile();
+            ca.load(new File(ConfigFilePath));
 
             // Load pet mode setting
-            String petModeStr = ca.getIniKey("PetModeEnabled");
+            String petModeStr = ca.get("PetModeEnabled");
             boolean petModeEnabled = petModeStr != null && string2boolean(petModeStr);
             TheGoose.petModeEnabled = petModeEnabled;
             if (PetModeSwitch != null) {
@@ -420,7 +420,7 @@ public class MainActivity extends AppCompatActivity {
             updatePetModeUIVisibility(petModeEnabled);
 
             // Load touchable setting
-            String touchableStr = ca.getIniKey("TouchableEnabled");
+            String touchableStr = ca.get("TouchableEnabled");
             isTouchable = touchableStr == null || string2boolean(touchableStr);
             if (TouchableSwitch != null) {
                 TouchableSwitch.setChecked(isTouchable);
@@ -476,23 +476,23 @@ public class MainActivity extends AppCompatActivity {
             if (!Utils.fileExists(ConfigFilePath)) {
                 Utils.copyAssetFile(this, "config.ini", ConfigFilePath);
             }
-            ConfigureActivity ca = new ConfigureActivity(MainActivity.this);
-            ca.readFromSD(ConfigFilePath);
-            EnableMods.setChecked(string2boolean(ca.getIniKey("EnableMods")));
-            SilenceSounds.setChecked(string2boolean(ca.getIniKey("SilenceSounds")));
-            Task_CanAttackMouse.setChecked(string2boolean(ca.getIniKey("Task_CanAttackMouse")));
-            AttackRandomly.setChecked(string2boolean(ca.getIniKey("AttackRandomly")));
-            UseCustomColors.setChecked(string2boolean(ca.getIniKey("UseCustomColors")));
-            ShowShadow.setChecked(string2boolean(ca.getIniKey("ShowShadow")));
+            PetConfigFile ca = new PetConfigFile();
+            ca.load(new File(ConfigFilePath));
+            EnableMods.setChecked(string2boolean(ca.get("EnableMods")));
+            SilenceSounds.setChecked(string2boolean(ca.get("SilenceSounds")));
+            Task_CanAttackMouse.setChecked(string2boolean(ca.get("Task_CanAttackMouse")));
+            AttackRandomly.setChecked(string2boolean(ca.get("AttackRandomly")));
+            UseCustomColors.setChecked(string2boolean(ca.get("UseCustomColors")));
+            ShowShadow.setChecked(string2boolean(ca.get("ShowShadow")));
             TheGoose.setShowShadow(ShowShadow.isChecked());
             // Set EditText contents
-            setEditTextContent(GooseDefaultWhite, ca.getIniKey("GooseDefaultWhite"));
-            setEditTextContent(GooseDefaultOrange, ca.getIniKey("GooseDefaultOrange"));
-            setEditTextContent(GooseDefaultOutline, ca.getIniKey("GooseDefaultOutline"));
-            setEditTextContent(MinWanderingTimeSeconds, ca.getIniKey("MinWanderingTimeSeconds"));
-            setEditTextContent(MaxWanderingTimeSeconds, ca.getIniKey("MaxWanderingTimeSeconds"));
-            setEditTextContent(FirstWanderTimeSeconds, ca.getIniKey("FirstWanderTimeSeconds"));
-            setEditTextContent(DrawSize, ca.getIniKey("DrawSize"));
+            setEditTextContent(GooseDefaultWhite, ca.get("GooseDefaultWhite"));
+            setEditTextContent(GooseDefaultOrange, ca.get("GooseDefaultOrange"));
+            setEditTextContent(GooseDefaultOutline, ca.get("GooseDefaultOutline"));
+            setEditTextContent(MinWanderingTimeSeconds, ca.get("MinWanderingTimeSeconds"));
+            setEditTextContent(MaxWanderingTimeSeconds, ca.get("MaxWanderingTimeSeconds"));
+            setEditTextContent(FirstWanderTimeSeconds, ca.get("FirstWanderTimeSeconds"));
+            setEditTextContent(DrawSize, ca.get("DrawSize"));
 
             updateConfigWithColor();
 
@@ -634,7 +634,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void saveConfigFile() {
         try {
-            ConfigureActivity ca = new ConfigureActivity(this);
             Properties prop = new Properties();
             prop.put("EnableMods", capitalizeFirst(String.valueOf(EnableMods.isChecked())));
             prop.put("SilenceSounds", capitalizeFirst(String.valueOf(SilenceSounds.isChecked())));
@@ -649,7 +648,7 @@ public class MainActivity extends AppCompatActivity {
             prop.put("MaxWanderingTimeSeconds", MaxWanderingTimeSeconds.getText().toString());
             prop.put("FirstWanderTimeSeconds", FirstWanderTimeSeconds.getText().toString());
             prop.put("DrawSize", DrawSize.getText().toString());
-            ca.saveFiletoSD(ConfigFilePath, prop);
+            PetConfigFile.saveMerged(new File(ConfigFilePath), prop);
         } catch (Exception e) {
             e.printStackTrace();
             showErrorAlert(e);

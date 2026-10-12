@@ -1,7 +1,7 @@
 package com.cfks.goosedroid.GooseDesktop;
 
 import android.graphics.*;
-import com.cfks.goosedroid.SamEngine.*;
+import com.cfks.goosedroid.core.*;
 import com.cfks.goosedroid.PetAppearance;
 import com.cfks.goosedroid.PetNeeds;
 
@@ -21,8 +21,8 @@ public class GooseRenderer {
      * Represents a single particle in the system.
      */
     public static class Particle {
-        public Vector2 position;
-        public Vector2 velocity;
+        public Vec2 position;
+        public Vec2 velocity;
         public float life;          // 0 to 1, dies at 0
         public float maxLife;
         public float size;
@@ -32,21 +32,21 @@ public class GooseRenderer {
         public float rotationSpeed;
         public float alpha;
 
-        public Particle(Vector2 pos, Vector2 vel, float life, float size, int color, ParticleType type) {
-            this.position = new Vector2(pos.x, pos.y);
+        public Particle(Vec2 pos, Vec2 vel, float life, float size, int color, ParticleType type) {
+            this.position = new Vec2(pos.x, pos.y);
             this.velocity = vel;
             this.life = life;
             this.maxLife = life;
             this.size = size;
             this.color = color;
             this.type = type;
-            this.rotation = SamMath.RandomRange(0, 360);
-            this.rotationSpeed = SamMath.RandomRange(-180, 180);
+            this.rotation = MathUtil.randomRange(0, 360);
+            this.rotationSpeed = MathUtil.randomRange(-180, 180);
             this.alpha = 1f;
         }
 
         public void update(float deltaTime) {
-            position = Vector2.add(position, Vector2.multiply(velocity, deltaTime));
+            position = Vec2.add(position, Vec2.mul(velocity, deltaTime));
             life -= deltaTime;
             alpha = Math.max(0, life / maxLife);
             rotation += rotationSpeed * deltaTime;
@@ -84,12 +84,12 @@ public class GooseRenderer {
      * Trail point for motion trails.
      */
     public static class TrailPoint {
-        public Vector2 position;
+        public Vec2 position;
         public double time;
         public float alpha;
 
-        public TrailPoint(Vector2 pos, double time) {
-            this.position = new Vector2(pos.x, pos.y);
+        public TrailPoint(Vec2 pos, double time) {
+            this.position = new Vec2(pos.x, pos.y);
             this.time = time;
             this.alpha = 1f;
         }
@@ -249,10 +249,10 @@ public class GooseRenderer {
 
         // Calculate direction vectors
         float dir = physics.getDirection();
-        Vector2 position = physics.getPosition();
-        Vector2 scale = new Vector2(1.3f, 0.4f);
-        Vector2 forward = Vector2.multiply(Vector2.GetFromAngleDegrees(dir), scale);
-        Vector2 right = Vector2.multiply(Vector2.GetFromAngleDegrees(dir + 90f), scale);
+        Vec2 position = physics.getPosition();
+        Vec2 scale = new Vec2(1.3f, 0.4f);
+        Vec2 forward = Vec2.mul(Vec2.fromDegrees(dir), scale);
+        Vec2 right = Vec2.mul(Vec2.fromDegrees(dir + 90f), scale);
 
         // Apply global draw scale
         float drawScale = TheGoose.DrawScale;
@@ -317,74 +317,74 @@ public class GooseRenderer {
     /**
      * Spawn a single particle.
      */
-    public void spawnParticle(Vector2 position, ParticleType type) {
+    public void spawnParticle(Vec2 position, ParticleType type) {
         if (particles.size() >= MAX_PARTICLES) return;
 
-        Vector2 vel;
+        Vec2 vel;
         float life, size;
         int color;
 
         switch (type) {
             case HEART:
-                vel = new Vector2(SamMath.RandomRange(-20, 20), SamMath.RandomRange(-50, -30));
-                life = SamMath.RandomRange(1f, 2f);
-                size = SamMath.RandomRange(8, 14);
+                vel = new Vec2(MathUtil.randomRange(-20, 20), MathUtil.randomRange(-50, -30));
+                life = MathUtil.randomRange(1f, 2f);
+                size = MathUtil.randomRange(8, 14);
                 color = 0xFFFF69B4;
                 break;
             case STAR:
-                vel = new Vector2(SamMath.RandomRange(-40, 40), SamMath.RandomRange(-60, -20));
-                life = SamMath.RandomRange(0.8f, 1.5f);
-                size = SamMath.RandomRange(6, 12);
+                vel = new Vec2(MathUtil.randomRange(-40, 40), MathUtil.randomRange(-60, -20));
+                life = MathUtil.randomRange(0.8f, 1.5f);
+                size = MathUtil.randomRange(6, 12);
                 color = 0xFFFFD700;
                 break;
             case MUSIC_NOTE:
-                vel = new Vector2(SamMath.RandomRange(-15, 15), SamMath.RandomRange(-40, -25));
-                life = SamMath.RandomRange(1.5f, 2.5f);
-                size = SamMath.RandomRange(10, 16);
+                vel = new Vec2(MathUtil.randomRange(-15, 15), MathUtil.randomRange(-40, -25));
+                life = MathUtil.randomRange(1.5f, 2.5f);
+                size = MathUtil.randomRange(10, 16);
                 color = 0xFF9370DB;
                 break;
             case CONFETTI:
-                vel = new Vector2(SamMath.RandomRange(-80, 80), SamMath.RandomRange(-100, -50));
-                life = SamMath.RandomRange(1f, 2f);
-                size = SamMath.RandomRange(4, 8);
+                vel = new Vec2(MathUtil.randomRange(-80, 80), MathUtil.randomRange(-100, -50));
+                life = MathUtil.randomRange(1f, 2f);
+                size = MathUtil.randomRange(4, 8);
                 // Random bright color
                 int[] confettiColors = {0xFFFF6B6B, 0xFF4ECDC4, 0xFFFFE66D, 0xFF95E1D3, 0xFFDDA0DD};
                 color = confettiColors[(int)(Math.random() * confettiColors.length)];
                 break;
             case BUBBLE:
-                vel = new Vector2(SamMath.RandomRange(-10, 10), SamMath.RandomRange(-30, -15));
-                life = SamMath.RandomRange(0.8f, 1.2f);
-                size = SamMath.RandomRange(4, 10);
+                vel = new Vec2(MathUtil.randomRange(-10, 10), MathUtil.randomRange(-30, -15));
+                life = MathUtil.randomRange(0.8f, 1.2f);
+                size = MathUtil.randomRange(4, 10);
                 color = 0x8800BFFF;
                 break;
             case SWEAT_DROP:
-                vel = new Vector2(SamMath.RandomRange(-5, 5), -20);
-                life = SamMath.RandomRange(0.6f, 1f);
-                size = SamMath.RandomRange(4, 8);
+                vel = new Vec2(MathUtil.randomRange(-5, 5), -20);
+                life = MathUtil.randomRange(0.6f, 1f);
+                size = MathUtil.randomRange(4, 8);
                 color = 0xFF87CEEB;
                 break;
             case SPARKLE:
-                vel = new Vector2(SamMath.RandomRange(-30, 30), SamMath.RandomRange(-30, 30));
-                life = SamMath.RandomRange(0.3f, 0.6f);
-                size = SamMath.RandomRange(3, 6);
+                vel = new Vec2(MathUtil.randomRange(-30, 30), MathUtil.randomRange(-30, 30));
+                life = MathUtil.randomRange(0.3f, 0.6f);
+                size = MathUtil.randomRange(3, 6);
                 color = 0xFFFFFFFF;
                 break;
             case DUST:
-                vel = new Vector2(SamMath.RandomRange(-20, 20), SamMath.RandomRange(-10, 5));
-                life = SamMath.RandomRange(0.3f, 0.5f);
-                size = SamMath.RandomRange(2, 5);
+                vel = new Vec2(MathUtil.randomRange(-20, 20), MathUtil.randomRange(-10, 5));
+                life = MathUtil.randomRange(0.3f, 0.5f);
+                size = MathUtil.randomRange(2, 5);
                 color = 0x88C4A484;
                 break;
             case ZZZ:
-                vel = new Vector2(15, -25);
-                life = SamMath.RandomRange(1.5f, 2f);
-                size = SamMath.RandomRange(12, 18);
+                vel = new Vec2(15, -25);
+                life = MathUtil.randomRange(1.5f, 2f);
+                size = MathUtil.randomRange(12, 18);
                 color = 0xFF6666FF;
                 break;
             case ANGER:
-                vel = new Vector2(SamMath.RandomRange(-25, 25), SamMath.RandomRange(-35, -20));
-                life = SamMath.RandomRange(0.5f, 0.8f);
-                size = SamMath.RandomRange(6, 10);
+                vel = new Vec2(MathUtil.randomRange(-25, 25), MathUtil.randomRange(-35, -20));
+                life = MathUtil.randomRange(0.5f, 0.8f);
+                size = MathUtil.randomRange(6, 10);
                 color = 0xFFFF4444;
                 break;
             default:
@@ -397,13 +397,13 @@ public class GooseRenderer {
     /**
      * Spawn burst of particles.
      */
-    public void spawnParticleBurst(Vector2 position, ParticleType type, int count) {
+    public void spawnParticleBurst(Vec2 position, ParticleType type, int count) {
         for (int i = 0; i < count; i++) {
-            Vector2 offset = new Vector2(
-                SamMath.RandomRange(-15, 15),
-                SamMath.RandomRange(-15, 15)
+            Vec2 offset = new Vec2(
+                MathUtil.randomRange(-15, 15),
+                MathUtil.randomRange(-15, 15)
             );
-            spawnParticle(Vector2.add(position, offset), type);
+            spawnParticle(Vec2.add(position, offset), type);
         }
     }
 
@@ -411,7 +411,7 @@ public class GooseRenderer {
      * Spawn particles based on current state.
      */
     private void spawnStateParticles(GoosePhysics physics, GooseAI ai, float deltaTime) {
-        Vector2 pos = physics.getPosition();
+        Vec2 pos = physics.getPosition();
         GooseTasks.GooseTask task = ai.getCurrentTask();
         PetNeeds.MoodState mood = PetNeeds.get().getMoodState();
 
@@ -419,7 +419,7 @@ public class GooseRenderer {
         if (task == GooseTasks.GooseTask.BeingPetted) {
             heartSpawnTimer -= deltaTime;
             if (heartSpawnTimer <= 0) {
-                spawnParticle(Vector2.add(pos, new Vector2(0, -40)), ParticleType.HEART);
+                spawnParticle(Vec2.add(pos, new Vec2(0, -40)), ParticleType.HEART);
                 heartSpawnTimer = 0.3f;
             }
         }
@@ -428,7 +428,7 @@ public class GooseRenderer {
         if (task == GooseTasks.GooseTask.Playing || task == GooseTasks.GooseTask.Happy) {
             starSpawnTimer -= deltaTime;
             if (starSpawnTimer <= 0) {
-                spawnParticle(Vector2.add(pos, new Vector2(SamMath.RandomRange(-20, 20), -35)), ParticleType.STAR);
+                spawnParticle(Vec2.add(pos, new Vec2(MathUtil.randomRange(-20, 20), -35)), ParticleType.STAR);
                 starSpawnTimer = 0.5f;
             }
         }
@@ -437,14 +437,14 @@ public class GooseRenderer {
         if (task == GooseTasks.GooseTask.Eating) {
             bubbleSpawnTimer -= deltaTime;
             if (bubbleSpawnTimer <= 0) {
-                spawnParticle(Vector2.add(pos, new Vector2(SamMath.RandomRange(-10, 10), -30)), ParticleType.BUBBLE);
+                spawnParticle(Vec2.add(pos, new Vec2(MathUtil.randomRange(-10, 10), -30)), ParticleType.BUBBLE);
                 bubbleSpawnTimer = 0.4f;
             }
         }
 
         // Sweat drops when tired
         if (mood == PetNeeds.MoodState.TIRED && Math.random() < 0.02) {
-            spawnParticle(Vector2.add(pos, new Vector2(15, -35)), ParticleType.SWEAT_DROP);
+            spawnParticle(Vec2.add(pos, new Vec2(15, -35)), ParticleType.SWEAT_DROP);
         }
 
         // Dust when moving fast
@@ -455,13 +455,13 @@ public class GooseRenderer {
         // Music notes during dance event
         if (ai.getActiveEvent() == GooseAI.RandomEvent.DANCE) {
             if (Math.random() < 0.08) {
-                spawnParticle(Vector2.add(pos, new Vector2(SamMath.RandomRange(-20, 20), -40)), ParticleType.MUSIC_NOTE);
+                spawnParticle(Vec2.add(pos, new Vec2(MathUtil.randomRange(-20, 20), -40)), ParticleType.MUSIC_NOTE);
             }
         }
 
         // ZZZ when sleeping
         if (task == GooseTasks.GooseTask.Sleeping && Math.random() < 0.03) {
-            spawnParticle(Vector2.add(pos, new Vector2(20, -45)), ParticleType.ZZZ);
+            spawnParticle(Vec2.add(pos, new Vec2(20, -45)), ParticleType.ZZZ);
         }
     }
 
@@ -476,13 +476,13 @@ public class GooseRenderer {
 
             switch (p.type) {
                 case HEART:
-                    drawHeart(canvas, particlePaint, Vector2.zero, p.size);
+                    drawHeart(canvas, particlePaint, Vec2.ZERO, p.size);
                     break;
                 case STAR:
-                    drawStar(canvas, particlePaint, Vector2.zero, p.size);
+                    drawStar(canvas, particlePaint, Vec2.ZERO, p.size);
                     break;
                 case MUSIC_NOTE:
-                    drawMusicNote(canvas, particlePaint, Vector2.zero, p.size);
+                    drawMusicNote(canvas, particlePaint, Vec2.ZERO, p.size);
                     break;
                 case CONFETTI:
                     particlePaint.setStyle(Paint.Style.FILL);
@@ -498,10 +498,10 @@ public class GooseRenderer {
                     canvas.drawCircle(-p.size * 0.3f, -p.size * 0.3f, p.size * 0.25f, particlePaint);
                     break;
                 case SWEAT_DROP:
-                    drawSweatDrop(canvas, particlePaint, Vector2.zero, p.size);
+                    drawSweatDrop(canvas, particlePaint, Vec2.ZERO, p.size);
                     break;
                 case SPARKLE:
-                    drawSparkle(canvas, particlePaint, Vector2.zero, p.size);
+                    drawSparkle(canvas, particlePaint, Vec2.ZERO, p.size);
                     break;
                 case DUST:
                     particlePaint.setStyle(Paint.Style.FILL);
@@ -513,7 +513,7 @@ public class GooseRenderer {
                     canvas.drawText("Z", 0, 0, particlePaint);
                     break;
                 case ANGER:
-                    drawAngerMark(canvas, particlePaint, Vector2.zero, p.size);
+                    drawAngerMark(canvas, particlePaint, Vec2.ZERO, p.size);
                     break;
             }
 
@@ -576,9 +576,9 @@ public class GooseRenderer {
     private void renderSpeedLines(Canvas canvas, GoosePhysics physics) {
         if (physics.getCurrentSpeed() < SPEED_LINE_THRESHOLD) return;
 
-        Vector2 pos = physics.getPosition();
+        Vec2 pos = physics.getPosition();
         float dir = physics.getDirection();
-        Vector2 backward = Vector2.GetFromAngleDegrees(dir + 180);
+        Vec2 backward = Vec2.fromDegrees(dir + 180);
 
         trailPaint.setColor(0xFFFFFFFF);
         trailPaint.setStyle(Paint.Style.STROKE);
@@ -588,16 +588,16 @@ public class GooseRenderer {
         int lineCount = (int)(3 + speedFactor * 4);
 
         for (int i = 0; i < lineCount; i++) {
-            float offsetAngle = dir + 180 + SamMath.RandomRange(-30, 30);
-            Vector2 lineDir = Vector2.GetFromAngleDegrees(offsetAngle);
+            float offsetAngle = dir + 180 + MathUtil.randomRange(-30, 30);
+            Vec2 lineDir = Vec2.fromDegrees(offsetAngle);
 
-            float startDist = SamMath.RandomRange(25, 40);
-            float lineLength = SamMath.RandomRange(10, 25) * speedFactor;
+            float startDist = MathUtil.randomRange(25, 40);
+            float lineLength = MathUtil.randomRange(10, 25) * speedFactor;
 
-            Vector2 start = Vector2.add(pos, Vector2.multiply(lineDir, startDist));
-            Vector2 end = Vector2.add(start, Vector2.multiply(lineDir, lineLength));
+            Vec2 start = Vec2.add(pos, Vec2.mul(lineDir, startDist));
+            Vec2 end = Vec2.add(start, Vec2.mul(lineDir, lineLength));
 
-            trailPaint.setAlpha((int)(SamMath.RandomRange(50, 150) * speedFactor));
+            trailPaint.setAlpha((int)(MathUtil.randomRange(50, 150) * speedFactor));
             canvas.drawLine(start.x, start.y, end.x, end.y, trailPaint);
         }
     }
@@ -648,11 +648,11 @@ public class GooseRenderer {
         }
 
         // Smooth transition
-        glowIntensity = SamMath.Lerp(glowIntensity, targetIntensity, deltaTime * 3f);
+        glowIntensity = MathUtil.lerp(glowIntensity, targetIntensity, deltaTime * 3f);
         currentGlowColor = targetColor;
     }
 
-    private void renderGlow(Canvas canvas, Vector2 position) {
+    private void renderGlow(Canvas canvas, Vec2 position) {
         if (glowIntensity < 0.05f) return;
 
         float pulse = 1f + (float)Math.sin(glowPhase) * 0.15f;
@@ -691,7 +691,7 @@ public class GooseRenderer {
     private final Path energyBoltPath = new Path();
     private final RectF happinessMouthRect = new RectF();
 
-    private void renderStatusIndicators(Canvas canvas, Vector2 position) {
+    private void renderStatusIndicators(Canvas canvas, Vec2 position) {
         float hunger = PetNeeds.get().hunger;
         float energy = PetNeeds.get().energy;
         float happiness = PetNeeds.get().happiness;
@@ -798,7 +798,7 @@ public class GooseRenderer {
     private Paint specularPaint;
 
     // Cached direction for shading
-    private Vector2 lastForward = Vector2.zero;
+    private Vec2 lastForward = Vec2.ZERO;
 
     // Objetos de dibujo reutilizables: se crean una vez y se reconfiguran en
     // cada frame para no generar basura (el render corre en un solo hilo)
@@ -878,7 +878,7 @@ public class GooseRenderer {
     /**
      * Render a single webbed foot.
      */
-    private void renderWebFoot(Canvas canvas, Vector2 pos, float direction, boolean isRight) {
+    private void renderWebFoot(Canvas canvas, Vec2 pos, float direction, boolean isRight) {
         Paint footPaint = footFillPaint;
         footPaint.setColor(footColor);
         footPaint.setAntiAlias(true);
@@ -956,7 +956,7 @@ public class GooseRenderer {
         canvas.restore();
     }
 
-    private void renderShadow(Canvas canvas, Vector2 position) {
+    private void renderShadow(Canvas canvas, Vec2 position) {
         if (!showShadow) return;
 
         // More detailed elliptical shadow
@@ -985,12 +985,12 @@ public class GooseRenderer {
     /**
      * Render the goose body with anatomically correct shape.
      */
-    private void renderBody(Canvas canvas, GooseRig rig, Vector2 forward) {
+    private void renderBody(Canvas canvas, GooseRig rig, Vec2 forward) {
         initFeatherPaint();
         float scale = rig.getScale();
 
         // Calculate perpendicular vector
-        Vector2 right = new Vector2(-forward.y, forward.x);
+        Vec2 right = new Vec2(-forward.y, forward.x);
 
         // ===== TAIL =====
         renderTail(canvas, rig, forward, scale);
@@ -1017,7 +1017,7 @@ public class GooseRenderer {
     /**
      * Render the main body shape with advanced shading.
      */
-    private void renderMainBody(Canvas canvas, GooseRig rig, Vector2 forward, Vector2 right, float scale) {
+    private void renderMainBody(Canvas canvas, GooseRig rig, Vec2 forward, Vec2 right, float scale) {
         initShadingPaints();
 
         // Create body path for smooth oval shape
@@ -1028,10 +1028,10 @@ public class GooseRenderer {
         float bodyWidth = 14f * scale;
 
         // Calculate body points
-        Vector2 bodyFront = Vector2.add(rig.bodyCenter, Vector2.multiply(forward, bodyLength * 0.5f));
-        Vector2 bodyBack = Vector2.subtract(rig.bodyCenter, Vector2.multiply(forward, bodyLength * 0.5f));
-        Vector2 bodyLeft = Vector2.subtract(rig.bodyCenter, Vector2.multiply(right, bodyWidth));
-        Vector2 bodyRight = Vector2.add(rig.bodyCenter, Vector2.multiply(right, bodyWidth));
+        Vec2 bodyFront = Vec2.add(rig.bodyCenter, Vec2.mul(forward, bodyLength * 0.5f));
+        Vec2 bodyBack = Vec2.sub(rig.bodyCenter, Vec2.mul(forward, bodyLength * 0.5f));
+        Vec2 bodyLeft = Vec2.sub(rig.bodyCenter, Vec2.mul(right, bodyWidth));
+        Vec2 bodyRight = Vec2.add(rig.bodyCenter, Vec2.mul(right, bodyWidth));
 
         // Create smooth body shape
         bodyPath.moveTo(bodyFront.x, bodyFront.y);
@@ -1104,12 +1104,12 @@ public class GooseRenderer {
         bellyPaint.setAntiAlias(true);
 
         bellyPath.rewind();
-        Vector2 bellyCenter = Vector2.add(rig.underbodyCenter, Vector2.multiply(new Vector2(0, 1), 2f * scale));
+        Vec2 bellyCenter = Vec2.add(rig.underbodyCenter, Vec2.mul(new Vec2(0, 1), 2f * scale));
         float bellyLength = 16f * scale;
         float bellyWidth = 10f * scale;
 
-        Vector2 bellyFront = Vector2.add(bellyCenter, Vector2.multiply(forward, bellyLength * 0.4f));
-        Vector2 bellyBack = Vector2.subtract(bellyCenter, Vector2.multiply(forward, bellyLength * 0.5f));
+        Vec2 bellyFront = Vec2.add(bellyCenter, Vec2.mul(forward, bellyLength * 0.4f));
+        Vec2 bellyBack = Vec2.sub(bellyCenter, Vec2.mul(forward, bellyLength * 0.5f));
 
         bellyPath.moveTo(bellyFront.x, bellyFront.y);
         bellyPath.quadTo(
@@ -1129,26 +1129,26 @@ public class GooseRenderer {
     /**
      * Render the neck with smooth curves and gradient shading.
      */
-    private void renderNeck(Canvas canvas, GooseRig rig, Vector2 forward, float scale) {
+    private void renderNeck(Canvas canvas, GooseRig rig, Vec2 forward, float scale) {
         initShadingPaints();
 
         // Create curved neck path
         neckPath.rewind();
 
         float neckWidth = 7f * scale;
-        Vector2 right = new Vector2(-forward.y, forward.x);
+        Vec2 right = new Vec2(-forward.y, forward.x);
 
         // Control points for bezier curve
-        Vector2 neckMid = Vector2.Lerp(rig.neckBase, rig.neckHeadPoint, 0.5f);
-        Vector2 neckControl = Vector2.add(neckMid, Vector2.multiply(forward, 5f * scale));
+        Vec2 neckMid = Vec2.lerp(rig.neckBase, rig.neckHeadPoint, 0.5f);
+        Vec2 neckControl = Vec2.add(neckMid, Vec2.mul(forward, 5f * scale));
 
         // Left side of neck
-        Vector2 neckBaseLeft = Vector2.subtract(rig.neckBase, Vector2.multiply(right, neckWidth));
-        Vector2 neckHeadLeft = Vector2.subtract(rig.neckHeadPoint, Vector2.multiply(right, neckWidth * 0.8f));
+        Vec2 neckBaseLeft = Vec2.sub(rig.neckBase, Vec2.mul(right, neckWidth));
+        Vec2 neckHeadLeft = Vec2.sub(rig.neckHeadPoint, Vec2.mul(right, neckWidth * 0.8f));
 
         // Right side of neck
-        Vector2 neckBaseRight = Vector2.add(rig.neckBase, Vector2.multiply(right, neckWidth));
-        Vector2 neckHeadRight = Vector2.add(rig.neckHeadPoint, Vector2.multiply(right, neckWidth * 0.8f));
+        Vec2 neckBaseRight = Vec2.add(rig.neckBase, Vec2.mul(right, neckWidth));
+        Vec2 neckHeadRight = Vec2.add(rig.neckHeadPoint, Vec2.mul(right, neckWidth * 0.8f));
 
         neckPath.moveTo(neckBaseLeft.x, neckBaseLeft.y);
         neckPath.quadTo(neckControl.x - right.x * neckWidth, neckControl.y - right.y * neckWidth,
@@ -1189,7 +1189,7 @@ public class GooseRenderer {
     /**
      * Render the head with proper goose shape and gradient shading.
      */
-    private void renderHead(Canvas canvas, GooseRig rig, Vector2 forward, float scale) {
+    private void renderHead(Canvas canvas, GooseRig rig, Vec2 forward, float scale) {
         initShadingPaints();
 
         // Head is more oval/egg shaped
@@ -1197,11 +1197,11 @@ public class GooseRenderer {
 
         float headLength = 12f * scale;
         float headWidth = 8f * scale;
-        Vector2 right = new Vector2(-forward.y, forward.x);
+        Vec2 right = new Vec2(-forward.y, forward.x);
 
-        Vector2 headCenter = Vector2.Lerp(rig.neckHeadPoint, rig.head2EndPoint, 0.4f);
-        Vector2 headFront = Vector2.add(headCenter, Vector2.multiply(forward, headLength * 0.6f));
-        Vector2 headBack = Vector2.subtract(headCenter, Vector2.multiply(forward, headLength * 0.4f));
+        Vec2 headCenter = Vec2.lerp(rig.neckHeadPoint, rig.head2EndPoint, 0.4f);
+        Vec2 headFront = Vec2.add(headCenter, Vec2.mul(forward, headLength * 0.6f));
+        Vec2 headBack = Vec2.sub(headCenter, Vec2.mul(forward, headLength * 0.4f));
 
         // Create egg shape
         headPath.moveTo(headFront.x, headFront.y);
@@ -1236,8 +1236,8 @@ public class GooseRenderer {
         renderRimLight(canvas, headPath, headCenter, headLength, scale);
 
         // Specular highlight on forehead
-        Vector2 specPos = Vector2.add(headCenter, Vector2.multiply(forward, headLength * 0.2f));
-        specPos = Vector2.add(specPos, new Vector2(0, -2f * scale));
+        Vec2 specPos = Vec2.add(headCenter, Vec2.mul(forward, headLength * 0.2f));
+        specPos = Vec2.add(specPos, new Vec2(0, -2f * scale));
         renderSpecularHighlight(canvas, specPos, 3f, 0.4f, scale);
 
         // Draw head outline
@@ -1253,8 +1253,8 @@ public class GooseRenderer {
     /**
      * Render dynamic blush effect based on happiness level.
      */
-    private void renderDynamicBlush(Canvas canvas, GooseRig rig, Vector2 headCenter,
-                                     Vector2 right, float headWidth, float scale) {
+    private void renderDynamicBlush(Canvas canvas, GooseRig rig, Vec2 headCenter,
+                                     Vec2 right, float headWidth, float scale) {
         float happiness = PetNeeds.get().happiness;
         if (happiness < 50) return;
 
@@ -1279,8 +1279,8 @@ public class GooseRenderer {
         // Create radial gradient for soft blush
         float blushSize = 4f * scale * (0.8f + intensity * 0.4f);
 
-        Vector2 leftCheek = Vector2.subtract(headCenter, Vector2.multiply(right, headWidth * 0.55f));
-        Vector2 rightCheek = Vector2.add(headCenter, Vector2.multiply(right, headWidth * 0.55f));
+        Vec2 leftCheek = Vec2.sub(headCenter, Vec2.mul(right, headWidth * 0.55f));
+        Vec2 rightCheek = Vec2.add(headCenter, Vec2.mul(right, headWidth * 0.55f));
 
         // Left cheek blush with gradient
         RadialGradient leftBlush = new RadialGradient(
@@ -1306,30 +1306,30 @@ public class GooseRenderer {
     /**
      * Render a realistic animated goose beak.
      */
-    private void renderBeak(Canvas canvas, GooseRig rig, Vector2 forward, float scale) {
+    private void renderBeak(Canvas canvas, GooseRig rig, Vec2 forward, float scale) {
         initShadingPaints();
 
         float beakLength = 10f * scale;
         float beakHeight = 4f * scale;
-        Vector2 up = new Vector2(0, -1);
+        Vec2 up = new Vec2(0, -1);
 
-        Vector2 beakStart = rig.head2EndPoint;
+        Vec2 beakStart = rig.head2EndPoint;
 
         // Get beak open amount from rig
         float openAmount = rig.getBeakOpenAmount();
         float openAngle = openAmount * 15f; // Max 15 degrees open
 
         // Calculate beak tip (moves slightly based on opening)
-        Vector2 beakTip = Vector2.add(beakStart, Vector2.multiply(forward, beakLength * (1f - openAmount * 0.05f)));
+        Vec2 beakTip = Vec2.add(beakStart, Vec2.mul(forward, beakLength * (1f - openAmount * 0.05f)));
 
         // === UPPER BEAK ===
         upperBeakPath.rewind();
-        Vector2 upperStart = Vector2.add(beakStart, Vector2.multiply(up, beakHeight * 0.3f));
-        Vector2 upperMid = Vector2.add(
-            Vector2.add(beakStart, Vector2.multiply(forward, beakLength * 0.6f)),
-            Vector2.multiply(up, beakHeight * 0.5f)
+        Vec2 upperStart = Vec2.add(beakStart, Vec2.mul(up, beakHeight * 0.3f));
+        Vec2 upperMid = Vec2.add(
+            Vec2.add(beakStart, Vec2.mul(forward, beakLength * 0.6f)),
+            Vec2.mul(up, beakHeight * 0.5f)
         );
-        Vector2 upperTip = beakTip;
+        Vec2 upperTip = beakTip;
 
         upperBeakPath.moveTo(beakStart.x, beakStart.y);
         upperBeakPath.lineTo(upperStart.x, upperStart.y);
@@ -1357,18 +1357,18 @@ public class GooseRenderer {
 
         // Lower beak rotates down when mouth opens
         float lowerAngleRad = (float)Math.toRadians(openAngle);
-        Vector2 lowerDir = new Vector2(
+        Vec2 lowerDir = new Vec2(
             forward.x * (float)Math.cos(lowerAngleRad) - up.x * (float)Math.sin(lowerAngleRad),
             forward.y * (float)Math.cos(lowerAngleRad) - up.y * (float)Math.sin(lowerAngleRad)
         );
 
-        Vector2 lowerStart = Vector2.subtract(beakStart, Vector2.multiply(up, beakHeight * 0.15f));
-        Vector2 lowerTip = Vector2.add(lowerStart, Vector2.multiply(lowerDir, beakLength * 0.85f));
-        Vector2 lowerMid = Vector2.add(
+        Vec2 lowerStart = Vec2.sub(beakStart, Vec2.mul(up, beakHeight * 0.15f));
+        Vec2 lowerTip = Vec2.add(lowerStart, Vec2.mul(lowerDir, beakLength * 0.85f));
+        Vec2 lowerMid = Vec2.add(
             lowerStart,
-            Vector2.multiply(lowerDir, beakLength * 0.5f)
+            Vec2.mul(lowerDir, beakLength * 0.5f)
         );
-        lowerMid = Vector2.subtract(lowerMid, Vector2.multiply(up, beakHeight * 0.2f));
+        lowerMid = Vec2.sub(lowerMid, Vec2.mul(up, beakHeight * 0.2f));
 
         lowerBeakPath.moveTo(beakStart.x, beakStart.y);
         lowerBeakPath.lineTo(lowerStart.x, lowerStart.y);
@@ -1399,8 +1399,8 @@ public class GooseRenderer {
         // Nostril
         nostrilPaint.setColor(darkenColor(mouthColor, 0.5f));
         nostrilPaint.setAntiAlias(true);
-        Vector2 nostrilPos = Vector2.add(beakStart, Vector2.multiply(forward, beakLength * 0.35f));
-        nostrilPos = Vector2.add(nostrilPos, Vector2.multiply(up, beakHeight * 0.15f));
+        Vec2 nostrilPos = Vec2.add(beakStart, Vec2.mul(forward, beakLength * 0.35f));
+        nostrilPos = Vec2.add(nostrilPos, Vec2.mul(up, beakHeight * 0.15f));
         nostrilRect.set(
             nostrilPos.x - 1.2f * scale,
             nostrilPos.y - 0.8f * scale,
@@ -1411,7 +1411,7 @@ public class GooseRenderer {
 
         // Specular highlight on beak tip (wet look)
         renderSpecularHighlight(canvas,
-            Vector2.add(beakStart, Vector2.multiply(forward, beakLength * 0.7f)),
+            Vec2.add(beakStart, Vec2.mul(forward, beakLength * 0.7f)),
             1.5f, 0.5f, scale);
 
         // Mouth interior when open
@@ -1423,7 +1423,7 @@ public class GooseRenderer {
             mouthPath.rewind();
             mouthPath.moveTo(beakStart.x, beakStart.y);
             float mouthDepth = beakLength * 0.4f * openAmount;
-            Vector2 mouthBack = Vector2.add(beakStart, Vector2.multiply(forward, mouthDepth));
+            Vec2 mouthBack = Vec2.add(beakStart, Vec2.mul(forward, mouthDepth));
             mouthPath.lineTo(upperTip.x - forward.x * beakLength * 0.3f, upperTip.y - forward.y * beakLength * 0.3f);
             mouthPath.lineTo(lowerTip.x - forward.x * beakLength * 0.3f, lowerTip.y - forward.y * beakLength * 0.3f);
             mouthPath.close();
@@ -1433,7 +1433,7 @@ public class GooseRenderer {
             if (openAmount > 0.2f) {
                 tonguePaint.setColor(0xFFFF6B6B);
                 tonguePaint.setAntiAlias(true);
-                Vector2 tonguePos = Vector2.add(beakStart, Vector2.multiply(forward, beakLength * 0.2f));
+                Vec2 tonguePos = Vec2.add(beakStart, Vec2.mul(forward, beakLength * 0.2f));
                 tongueRect.set(
                     tonguePos.x - 2f * scale,
                     tonguePos.y - 1f * scale,
@@ -1448,21 +1448,21 @@ public class GooseRenderer {
     /**
      * Render wings with animation and detailed feathers.
      */
-    private void renderWings(Canvas canvas, GooseRig rig, Vector2 forward, float scale, boolean backLayer) {
+    private void renderWings(Canvas canvas, GooseRig rig, Vec2 forward, float scale, boolean backLayer) {
         float wingAngle = rig.getWingAngle();
-        Vector2 right = new Vector2(-forward.y, forward.x);
+        Vec2 right = new Vec2(-forward.y, forward.x);
 
         // Apply wing lag from secondary motion
-        Vector2 wingLag = rig.getWingLag();
+        Vec2 wingLag = rig.getWingLag();
 
         // Only render one wing per layer (for 3D effect)
         if (backLayer) {
             // Back wing (farther from viewer)
-            Vector2 adjustedPos = Vector2.add(rig.leftWingPos, Vector2.multiply(wingLag, 0.3f));
+            Vec2 adjustedPos = Vec2.add(rig.leftWingPos, Vec2.mul(wingLag, 0.3f));
             renderDetailedWing(canvas, adjustedPos, forward, right, scale, wingAngle, true);
         } else {
             // Front wing (closer to viewer)
-            Vector2 adjustedPos = Vector2.add(rig.rightWingPos, Vector2.multiply(wingLag, 0.3f));
+            Vec2 adjustedPos = Vec2.add(rig.rightWingPos, Vec2.mul(wingLag, 0.3f));
             renderDetailedWing(canvas, adjustedPos, forward, right, scale, -wingAngle, false);
         }
     }
@@ -1470,7 +1470,7 @@ public class GooseRenderer {
     /**
      * Render a detailed wing with individual feathers.
      */
-    private void renderDetailedWing(Canvas canvas, Vector2 wingPos, Vector2 forward, Vector2 right,
+    private void renderDetailedWing(Canvas canvas, Vec2 wingPos, Vec2 forward, Vec2 right,
                                      float scale, float angle, boolean isBack) {
         initShadingPaints();
 
@@ -1479,13 +1479,13 @@ public class GooseRenderer {
 
         // Apply wing angle
         float angleRad = (float)Math.toRadians(angle);
-        Vector2 wingDir = new Vector2(
+        Vec2 wingDir = new Vec2(
             right.x * (float)Math.cos(angleRad) - (isBack ? -1 : 1) * 0.3f * (float)Math.sin(angleRad),
             right.y * (float)Math.cos(angleRad) + 0.7f * (float)Math.sin(angleRad)
         );
 
-        Vector2 wingTip = Vector2.add(wingPos, Vector2.multiply(wingDir, wingLength));
-        Vector2 wingBack = Vector2.subtract(wingPos, Vector2.multiply(forward, wingWidth));
+        Vec2 wingTip = Vec2.add(wingPos, Vec2.mul(wingDir, wingLength));
+        Vec2 wingBack = Vec2.sub(wingPos, Vec2.mul(forward, wingWidth));
 
         // Wing color with gradient based on position
         int wingColor = isBack ? darkenColor(bodyColor, 0.88f) : bodyColor;
@@ -1501,13 +1501,13 @@ public class GooseRenderer {
             float t = i / (float)(featherCount - 1);
 
             // Calculate feather position along wing
-            Vector2 featherBase = Vector2.Lerp(wingPos, wingBack, t * 0.8f);
-            Vector2 featherTip = Vector2.Lerp(wingPos, wingTip, 0.3f + t * 0.7f);
+            Vec2 featherBase = Vec2.lerp(wingPos, wingBack, t * 0.8f);
+            Vec2 featherTip = Vec2.lerp(wingPos, wingTip, 0.3f + t * 0.7f);
 
             // Feather direction
-            Vector2 featherDir = Vector2.subtract(featherTip, featherBase);
-            float featherLen = Vector2.Distance(featherBase, featherTip);
-            featherDir = Vector2.Normalize(featherDir);
+            Vec2 featherDir = Vec2.sub(featherTip, featherBase);
+            float featherLen = Vec2.dist(featherBase, featherTip);
+            featherDir = Vec2.normalize(featherDir);
 
             // Create feather path with barbs
             Path featherPath = wingFeatherPath;
@@ -1515,18 +1515,18 @@ public class GooseRenderer {
             float featherWidth = (3f + (1 - t) * 3f) * scale;
 
             // Perpendicular for feather width
-            Vector2 featherPerp = new Vector2(-featherDir.y, featherDir.x);
+            Vec2 featherPerp = new Vec2(-featherDir.y, featherDir.x);
 
             // Feather shape (slightly curved)
-            Vector2 leftBase = Vector2.subtract(featherBase, Vector2.multiply(featherPerp, featherWidth * 0.3f));
-            Vector2 rightBase = Vector2.add(featherBase, Vector2.multiply(featherPerp, featherWidth * 0.3f));
-            Vector2 leftMid = Vector2.subtract(
-                Vector2.add(featherBase, Vector2.multiply(featherDir, featherLen * 0.5f)),
-                Vector2.multiply(featherPerp, featherWidth * 0.5f)
+            Vec2 leftBase = Vec2.sub(featherBase, Vec2.mul(featherPerp, featherWidth * 0.3f));
+            Vec2 rightBase = Vec2.add(featherBase, Vec2.mul(featherPerp, featherWidth * 0.3f));
+            Vec2 leftMid = Vec2.sub(
+                Vec2.add(featherBase, Vec2.mul(featherDir, featherLen * 0.5f)),
+                Vec2.mul(featherPerp, featherWidth * 0.5f)
             );
-            Vector2 rightMid = Vector2.add(
-                Vector2.add(featherBase, Vector2.multiply(featherDir, featherLen * 0.5f)),
-                Vector2.multiply(featherPerp, featherWidth * 0.5f)
+            Vec2 rightMid = Vec2.add(
+                Vec2.add(featherBase, Vec2.mul(featherDir, featherLen * 0.5f)),
+                Vec2.mul(featherPerp, featherWidth * 0.5f)
             );
 
             featherPath.moveTo(leftBase.x, leftBase.y);
@@ -1561,9 +1561,9 @@ public class GooseRenderer {
                 featherPaint.setStrokeWidth(0.4f * scale);
                 for (int b = 1; b <= 3; b++) {
                     float bt = b / 4f;
-                    Vector2 barbStart = Vector2.Lerp(featherBase, featherTip, bt);
-                    Vector2 barbEndL = Vector2.subtract(barbStart, Vector2.multiply(featherPerp, featherWidth * 0.4f * (1 - bt)));
-                    Vector2 barbEndR = Vector2.add(barbStart, Vector2.multiply(featherPerp, featherWidth * 0.4f * (1 - bt)));
+                    Vec2 barbStart = Vec2.lerp(featherBase, featherTip, bt);
+                    Vec2 barbEndL = Vec2.sub(barbStart, Vec2.mul(featherPerp, featherWidth * 0.4f * (1 - bt)));
+                    Vec2 barbEndR = Vec2.add(barbStart, Vec2.mul(featherPerp, featherWidth * 0.4f * (1 - bt)));
                     canvas.drawLine(barbStart.x, barbStart.y, barbEndL.x, barbEndL.y, featherPaint);
                     canvas.drawLine(barbStart.x, barbStart.y, barbEndR.x, barbEndR.y, featherPaint);
                 }
@@ -1614,26 +1614,26 @@ public class GooseRenderer {
     /**
      * Render detailed tail feathers with gradients and structure.
      */
-    private void renderTail(Canvas canvas, GooseRig rig, Vector2 forward, float scale) {
+    private void renderTail(Canvas canvas, GooseRig rig, Vec2 forward, float scale) {
         initShadingPaints();
 
         float tailLength = 14f * scale;
 
-        Vector2 right = new Vector2(-forward.y, forward.x);
+        Vec2 right = new Vec2(-forward.y, forward.x);
         float wagAngle = rig.getTailWagAngle();
 
         // Apply tail lag from secondary motion
-        Vector2 tailLag = rig.getTailLag();
+        Vec2 tailLag = rig.getTailLag();
 
         // Tail direction with wag and lag
-        Vector2 tailDir = Vector2.add(
-            Vector2.multiply(forward, -1f),
-            Vector2.multiply(right, wagAngle)
+        Vec2 tailDir = Vec2.add(
+            Vec2.mul(forward, -1f),
+            Vec2.mul(right, wagAngle)
         );
-        tailDir = Vector2.Normalize(tailDir);
+        tailDir = Vec2.normalize(tailDir);
 
         // Adjusted tail position with lag
-        Vector2 tailBase = Vector2.add(rig.tailPos, Vector2.multiply(tailLag, 0.2f));
+        Vec2 tailBase = Vec2.add(rig.tailPos, Vec2.mul(tailLag, 0.2f));
 
         // Create tail feather fan shape - 7 feathers for more detail
         int featherCount = 7;
@@ -1652,17 +1652,17 @@ public class GooseRenderer {
             float angleRad = (float)Math.toRadians(featherAngle);
 
             // Rotate direction
-            Vector2 featherDir = new Vector2(
+            Vec2 featherDir = new Vec2(
                 tailDir.x * (float)Math.cos(angleRad) - tailDir.y * (float)Math.sin(angleRad),
                 tailDir.x * (float)Math.sin(angleRad) + tailDir.y * (float)Math.cos(angleRad)
             );
 
             // Feather length varies (center feathers longer)
             float thisLength = tailLength * (1f - distFromCenter * 0.08f);
-            Vector2 featherTip = Vector2.add(tailBase, Vector2.multiply(featherDir, thisLength));
+            Vec2 featherTip = Vec2.add(tailBase, Vec2.mul(featherDir, thisLength));
 
             // Perpendicular for feather width
-            Vector2 featherPerp = new Vector2(-featherDir.y, featherDir.x);
+            Vec2 featherPerp = new Vec2(-featherDir.y, featherDir.x);
             float featherWidth = (2.5f - distFromCenter * 0.2f) * scale;
 
             // Create feather path
@@ -1670,13 +1670,13 @@ public class GooseRenderer {
             featherPath.rewind();
 
             // Base of feather
-            Vector2 baseLeft = Vector2.subtract(tailBase, Vector2.multiply(featherPerp, featherWidth * 0.3f));
-            Vector2 baseRight = Vector2.add(tailBase, Vector2.multiply(featherPerp, featherWidth * 0.3f));
+            Vec2 baseLeft = Vec2.sub(tailBase, Vec2.mul(featherPerp, featherWidth * 0.3f));
+            Vec2 baseRight = Vec2.add(tailBase, Vec2.mul(featherPerp, featherWidth * 0.3f));
 
             // Mid point (widest part)
-            Vector2 midPoint = Vector2.add(tailBase, Vector2.multiply(featherDir, thisLength * 0.4f));
-            Vector2 midLeft = Vector2.subtract(midPoint, Vector2.multiply(featherPerp, featherWidth * 0.6f));
-            Vector2 midRight = Vector2.add(midPoint, Vector2.multiply(featherPerp, featherWidth * 0.6f));
+            Vec2 midPoint = Vec2.add(tailBase, Vec2.mul(featherDir, thisLength * 0.4f));
+            Vec2 midLeft = Vec2.sub(midPoint, Vec2.mul(featherPerp, featherWidth * 0.6f));
+            Vec2 midRight = Vec2.add(midPoint, Vec2.mul(featherPerp, featherWidth * 0.6f));
 
             // Build feather shape
             featherPath.moveTo(baseLeft.x, baseLeft.y);
@@ -1710,10 +1710,10 @@ public class GooseRenderer {
             featherPaint.setStrokeWidth(0.5f * scale);
             for (int b = 1; b <= 4; b++) {
                 float bt = b / 5f;
-                Vector2 barbPoint = Vector2.Lerp(tailBase, featherTip, bt);
+                Vec2 barbPoint = Vec2.lerp(tailBase, featherTip, bt);
                 float barbLen = featherWidth * 0.5f * (1 - bt * 0.5f);
-                Vector2 barbL = Vector2.subtract(barbPoint, Vector2.multiply(featherPerp, barbLen));
-                Vector2 barbR = Vector2.add(barbPoint, Vector2.multiply(featherPerp, barbLen));
+                Vec2 barbL = Vec2.sub(barbPoint, Vec2.mul(featherPerp, barbLen));
+                Vec2 barbR = Vec2.add(barbPoint, Vec2.mul(featherPerp, barbLen));
                 canvas.drawLine(barbPoint.x, barbPoint.y, barbL.x, barbL.y, featherPaint);
                 canvas.drawLine(barbPoint.x, barbPoint.y, barbR.x, barbR.y, featherPaint);
             }
@@ -1722,9 +1722,9 @@ public class GooseRenderer {
             if (distFromCenter > 1) {
                 featherPaint.setColor(darkenColor(bodyColor, 0.85f));
                 featherPaint.setStrokeWidth(1.2f * scale);
-                Vector2 stripeStart = Vector2.Lerp(tailBase, featherTip, 0.5f);
-                Vector2 stripeEnd = Vector2.Lerp(tailBase, featherTip, 0.9f);
-                Vector2 stripeOff = Vector2.multiply(featherPerp, featherWidth * 0.3f * (i < featherCount / 2 ? -1 : 1));
+                Vec2 stripeStart = Vec2.lerp(tailBase, featherTip, 0.5f);
+                Vec2 stripeEnd = Vec2.lerp(tailBase, featherTip, 0.9f);
+                Vec2 stripeOff = Vec2.mul(featherPerp, featherWidth * 0.3f * (i < featherCount / 2 ? -1 : 1));
                 canvas.drawLine(
                     stripeStart.x + stripeOff.x, stripeStart.y + stripeOff.y,
                     stripeEnd.x + stripeOff.x, stripeEnd.y + stripeOff.y,
@@ -1737,29 +1737,29 @@ public class GooseRenderer {
     /**
      * Render subtle feather texture.
      */
-    private void renderFeatherTexture(Canvas canvas, Vector2 center, Vector2 forward,
+    private void renderFeatherTexture(Canvas canvas, Vec2 center, Vec2 forward,
                                        float length, float width, float scale) {
         texturePaint.setColor(darkenColor(bodyColor, 0.92f));
         texturePaint.setAntiAlias(true);
         texturePaint.setStrokeWidth(0.5f * scale);
         texturePaint.setStyle(Paint.Style.STROKE);
 
-        Vector2 right = new Vector2(-forward.y, forward.x);
+        Vec2 right = new Vec2(-forward.y, forward.x);
 
         // Draw subtle curved lines for feather texture
         int lineCount = 4;
         for (int i = 0; i < lineCount; i++) {
             float t = (i + 1f) / (lineCount + 1f);
-            Vector2 lineStart = Vector2.add(center,
-                Vector2.add(
-                    Vector2.multiply(forward, length * (0.3f - t * 0.5f)),
-                    Vector2.multiply(right, -width * 0.6f)
+            Vec2 lineStart = Vec2.add(center,
+                Vec2.add(
+                    Vec2.mul(forward, length * (0.3f - t * 0.5f)),
+                    Vec2.mul(right, -width * 0.6f)
                 )
             );
-            Vector2 lineEnd = Vector2.add(center,
-                Vector2.add(
-                    Vector2.multiply(forward, length * (0.3f - t * 0.5f)),
-                    Vector2.multiply(right, width * 0.6f)
+            Vec2 lineEnd = Vec2.add(center,
+                Vec2.add(
+                    Vec2.mul(forward, length * (0.3f - t * 0.5f)),
+                    Vec2.mul(right, width * 0.6f)
                 )
             );
 
@@ -1796,7 +1796,7 @@ public class GooseRenderer {
     /**
      * Render rim lighting effect around a path for 3D depth.
      */
-    private void renderRimLight(Canvas canvas, Path path, Vector2 center, float size, float scale) {
+    private void renderRimLight(Canvas canvas, Path path, Vec2 center, float size, float scale) {
         // Create rim light paint with blur
         rimPaint.setAntiAlias(true);
         rimPaint.setStyle(Paint.Style.STROKE);
@@ -1814,7 +1814,7 @@ public class GooseRenderer {
     /**
      * Render ambient occlusion (contact shadows) where parts meet.
      */
-    private void renderAmbientOcclusion(Canvas canvas, Vector2 position, float radius, float scale) {
+    private void renderAmbientOcclusion(Canvas canvas, Vec2 position, float radius, float scale) {
         ambientOcclusionPaint.setColor(0x22000000); // Very subtle black
         ambientOcclusionPaint.setMaskFilter(ambientOcclusionBlur.get(4f * scale));
         canvas.drawCircle(position.x, position.y + 2f * scale, radius * 0.8f, ambientOcclusionPaint);
@@ -1824,7 +1824,7 @@ public class GooseRenderer {
     /**
      * Render specular highlight on a surface.
      */
-    private void renderSpecularHighlight(Canvas canvas, Vector2 position, float size, float intensity, float scale) {
+    private void renderSpecularHighlight(Canvas canvas, Vec2 position, float size, float intensity, float scale) {
         int alpha = (int)(255 * intensity * 0.6f);
         specularPaint.setColor(Color.argb(alpha, 255, 255, 255));
 
@@ -1844,7 +1844,7 @@ public class GooseRenderer {
     /**
      * Render dynamic specular highlights that respond to movement.
      */
-    private void renderDynamicSpeculars(Canvas canvas, GooseRig rig, GoosePhysics physics, Vector2 forward) {
+    private void renderDynamicSpeculars(Canvas canvas, GooseRig rig, GoosePhysics physics, Vec2 forward) {
         initShadingPaints();
 
         float scale = rig.getScale();
@@ -1856,29 +1856,29 @@ public class GooseRenderer {
         float intensity = baseIntensity + movementBonus;
 
         // Specular position shifts opposite to movement direction
-        Vector2 velocity = new Vector2(
+        Vec2 velocity = new Vec2(
             physics.getPosition().x - rig.bodyCenter.x,
             physics.getPosition().y - rig.bodyCenter.y
         );
 
         // Chest specular
-        Vector2 chestSpec = Vector2.add(
+        Vec2 chestSpec = Vec2.add(
             rig.bodyCenter,
-            Vector2.multiply(forward, 8f * scale)
+            Vec2.mul(forward, 8f * scale)
         );
-        chestSpec = Vector2.add(chestSpec, new Vector2(0, -5f * scale));
+        chestSpec = Vec2.add(chestSpec, new Vec2(0, -5f * scale));
 
         // Shift based on movement
         if (speed > 10f) {
-            Vector2 shiftDir = Vector2.Normalize(Vector2.multiply(velocity, -1f));
-            chestSpec = Vector2.add(chestSpec, Vector2.multiply(shiftDir, 3f * scale));
+            Vec2 shiftDir = Vec2.normalize(Vec2.mul(velocity, -1f));
+            chestSpec = Vec2.add(chestSpec, Vec2.mul(shiftDir, 3f * scale));
         }
 
         // Draw chest specular
         renderSpecularHighlight(canvas, chestSpec, 5f, intensity, scale);
 
         // Neck specular (smaller)
-        Vector2 neckMid = Vector2.Lerp(rig.neckBase, rig.neckHeadPoint, 0.5f);
+        Vec2 neckMid = Vec2.lerp(rig.neckBase, rig.neckHeadPoint, 0.5f);
         renderSpecularHighlight(canvas, neckMid, 2.5f, intensity * 0.7f, scale);
 
         // Pulse effect when moving fast
@@ -1887,9 +1887,9 @@ public class GooseRenderer {
             float pulseIntensity = intensity + pulse;
 
             // Extra sparkle at high speed
-            Vector2 sparklePos = Vector2.add(
+            Vec2 sparklePos = Vec2.add(
                 rig.bodyCenter,
-                new Vector2(
+                new Vec2(
                     (float)Math.sin(Time.time * 3f) * 8f * scale,
                     (float)Math.cos(Time.time * 2f) * 4f * scale - 8f * scale
                 )
@@ -1899,15 +1899,14 @@ public class GooseRenderer {
     }
 
     private void renderFootprints(Canvas canvas, GoosePhysics physics) {
-        FootMark[] footMarks = physics.getFootMarks();
+        Footprint[] footMarks = physics.getFootMarks();
         mudPaint.setColor(0xFF8B4513);
         mudPaint.setAntiAlias(true);
 
         for (int i = 0; i < footMarks.length; i++) {
-            if (footMarks[i] != null && footMarks[i].time != 0.0f) {
-                double fadeStart = footMarks[i].time + 8.5f;
-                float fadeProgress = SamMath.Clamp((float) (Time.time - fadeStart), 0f, 1f);
-                float radius = SamMath.Lerp(3f, 0f, fadeProgress);
+            float visibility = footMarks[i] != null ? footMarks[i].visibility(Time.time) : 0f;
+            if (visibility > 0f) {
+                float radius = 3f * visibility;
                 fillCircleFromCenter(canvas, mudPaint, footMarks[i].position, (int) radius);
             }
         }
@@ -1916,7 +1915,7 @@ public class GooseRenderer {
     // ============== EYE RENDERING ==============
 
     // Eye tracking state
-    private Vector2 eyeLookTarget = null;
+    private Vec2 eyeLookTarget = null;
     private float eyeLookTimer = 0f;
 
     // Objetos reutilizables de ojos, cejas y lágrimas (se reconfiguran en cada frame)
@@ -1944,7 +1943,7 @@ public class GooseRenderer {
     /**
      * Set where the eyes should look (for tracking user touch, etc.)
      */
-    public void setEyeLookTarget(Vector2 target) {
+    public void setEyeLookTarget(Vec2 target) {
         this.eyeLookTarget = target;
         this.eyeLookTimer = 2f; // Look for 2 seconds
     }
@@ -2015,7 +2014,7 @@ public class GooseRenderer {
     /**
      * Render a detailed eye with sclera, iris, pupil, and Fresnel effect.
      */
-    private void renderDetailedEye(Canvas canvas, Vector2 pos, float radius, float vScale,
+    private void renderDetailedEye(Canvas canvas, Vec2 pos, float radius, float vScale,
                                     float scale, GooseRig.Expression expr, boolean isRight) {
         initShadingPaints();
 
@@ -2056,10 +2055,10 @@ public class GooseRenderer {
 
         if (eyeLookTarget != null) {
             // Look towards target
-            Vector2 toTarget = Vector2.subtract(eyeLookTarget, pos);
-            float dist = Vector2.Distance(pos, eyeLookTarget);
+            Vec2 toTarget = Vec2.sub(eyeLookTarget, pos);
+            float dist = Vec2.dist(pos, eyeLookTarget);
             if (dist > 1f) {
-                toTarget = Vector2.Normalize(toTarget);
+                toTarget = Vec2.normalize(toTarget);
                 float maxOffset = radius * 0.3f;
                 pupilOffsetX = toTarget.x * maxOffset;
                 pupilOffsetY = toTarget.y * maxOffset * vScale;
@@ -2170,7 +2169,7 @@ public class GooseRenderer {
     /**
      * Draw happy closed eye (^_^).
      */
-    private void drawHappyClosedEye(Canvas canvas, Vector2 pos, float radius, Paint paint) {
+    private void drawHappyClosedEye(Canvas canvas, Vec2 pos, float radius, Paint paint) {
         Path eyePath = closedEyePath;
         eyePath.rewind();
         eyePath.moveTo(pos.x - radius, pos.y + radius * 0.3f);
@@ -2199,10 +2198,10 @@ public class GooseRenderer {
         float browLength = eyeRadius * 1.3f;
 
         // Base brow positions
-        Vector2 leftBrowStart = new Vector2(rig.leftEyePos.x - browLength, rig.leftEyePos.y + browY);
-        Vector2 leftBrowEnd = new Vector2(rig.leftEyePos.x + browLength * 0.6f, rig.leftEyePos.y + browY);
-        Vector2 rightBrowStart = new Vector2(rig.rightEyePos.x + browLength, rig.rightEyePos.y + browY);
-        Vector2 rightBrowEnd = new Vector2(rig.rightEyePos.x - browLength * 0.6f, rig.rightEyePos.y + browY);
+        Vec2 leftBrowStart = new Vec2(rig.leftEyePos.x - browLength, rig.leftEyePos.y + browY);
+        Vec2 leftBrowEnd = new Vec2(rig.leftEyePos.x + browLength * 0.6f, rig.leftEyePos.y + browY);
+        Vec2 rightBrowStart = new Vec2(rig.rightEyePos.x + browLength, rig.rightEyePos.y + browY);
+        Vec2 rightBrowEnd = new Vec2(rig.rightEyePos.x - browLength * 0.6f, rig.rightEyePos.y + browY);
 
         // Apply expression-based modifications
         float innerRaise = 0f;
@@ -2280,7 +2279,7 @@ public class GooseRenderer {
         float tearY = tearPhase * 15f * scale;
 
         // Left eye tear
-        Vector2 leftTearPos = new Vector2(
+        Vec2 leftTearPos = new Vec2(
             rig.leftEyePos.x + 1f * scale,
             rig.leftEyePos.y + 4f * scale + tearY
         );
@@ -2288,7 +2287,7 @@ public class GooseRenderer {
         // Right eye tear (slightly offset timing)
         float rightPhase = (float) (((Time.time * 2f) + 0.5f) % 1f);
         float rightTearY = rightPhase * 15f * scale;
-        Vector2 rightTearPos = new Vector2(
+        Vec2 rightTearPos = new Vec2(
             rig.rightEyePos.x - 1f * scale,
             rig.rightEyePos.y + 4f * scale + rightTearY
         );
@@ -2400,8 +2399,8 @@ public class GooseRenderer {
 
         // Add sparkle
         if (Math.random() < 0.1f) {
-            spawnParticle(Vector2.add(rig.leftEyePos, new Vector2(
-                SamMath.RandomRange(-5, 5), SamMath.RandomRange(-5, 5)
+            spawnParticle(Vec2.add(rig.leftEyePos, new Vec2(
+                MathUtil.randomRange(-5, 5), MathUtil.randomRange(-5, 5)
             )), ParticleType.SPARKLE);
         }
     }
@@ -2424,7 +2423,7 @@ public class GooseRenderer {
 
         // Hat rendering
         if (PetAppearance.get().hatId > 0) {
-            Vector2 headPos = rig.head1EndPoint;
+            Vec2 headPos = rig.head1EndPoint;
 
             switch (PetAppearance.get().hatId) {
                 case 1: // Bow (lazo mejorado)
@@ -2438,7 +2437,7 @@ public class GooseRenderer {
                     canvas.drawOval(accessoryRect, accessoryPaint);
                     // Center knot
                     accessoryPaint.setColor(0xFFFF1493);
-                    fillCircleFromCenter(canvas, accessoryPaint, Vector2.add(headPos, new Vector2(0, -13)), 4);
+                    fillCircleFromCenter(canvas, accessoryPaint, Vec2.add(headPos, new Vec2(0, -13)), 4);
                     // Ribbon tails
                     accessoryPaint.setColor(0xFFFF69B4);
                     Path ribbon = ribbonPath;
@@ -2487,7 +2486,7 @@ public class GooseRenderer {
 
         // Accessory rendering
         if (PetAppearance.get().accessoryId > 0) {
-            Vector2 neckPos = rig.neckBase;
+            Vec2 neckPos = rig.neckBase;
             accessoryPaint.setStrokeWidth(3f);
 
             switch (PetAppearance.get().accessoryId) {
@@ -2503,7 +2502,7 @@ public class GooseRenderer {
                 case 2: // Glasses
                     accessoryPaint.setColor(0xFF000000);
                     accessoryPaint.setStyle(Paint.Style.STROKE);
-                    Vector2 eyeCenter = rig.neckHeadPoint;
+                    Vec2 eyeCenter = rig.neckHeadPoint;
                     canvas.drawCircle(eyeCenter.x - 5, eyeCenter.y - 3, 4, accessoryPaint);
                     canvas.drawCircle(eyeCenter.x + 5, eyeCenter.y - 3, 4, accessoryPaint);
                     canvas.drawLine(eyeCenter.x - 1, eyeCenter.y - 3, eyeCenter.x + 1, eyeCenter.y - 3, accessoryPaint);
@@ -2518,7 +2517,7 @@ public class GooseRenderer {
                     Paint tagPaint = collarTagPaint;
                     tagPaint.setColor(0xFFFFD700);
                     tagPaint.setAntiAlias(true);
-                    fillCircleFromCenter(canvas, tagPaint, new Vector2(neckPos.x, neckPos.y + 8), 4);
+                    fillCircleFromCenter(canvas, tagPaint, new Vec2(neckPos.x, neckPos.y + 8), 4);
                     break;
                 case 4: // Bow Tie
                     accessoryPaint.setColor(0xFF8B0000);
@@ -2543,7 +2542,7 @@ public class GooseRenderer {
     private final RectF emojiRect = new RectF();
     private final Paint sleepTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-    private void renderEmoji(Canvas canvas, Vector2 position, GooseTouchHandler touchHandler) {
+    private void renderEmoji(Canvas canvas, Vec2 position, GooseTouchHandler touchHandler) {
         String emoji = touchHandler.getCurrentEmoji();
         if (emoji.isEmpty()) return;
 
@@ -2557,7 +2556,7 @@ public class GooseRenderer {
         bubblePaint.setColor(0xFFFFFFFF);
         bubblePaint.setAntiAlias(true);
 
-        Vector2 emojiPos = new Vector2(position.x, position.y - 60);
+        Vec2 emojiPos = new Vec2(position.x, position.y - 60);
         float textWidth = textPaint.measureText(emoji);
         float padding = 8f;
 
@@ -2663,7 +2662,7 @@ public class GooseRenderer {
     /**
      * Render the thought bubble showing what the goose is thinking.
      */
-    private void renderThoughtBubble(Canvas canvas, Vector2 position,
+    private void renderThoughtBubble(Canvas canvas, Vec2 position,
                                      int worldWidth, int worldHeight) {
         String thought = TheGoose.getCurrentThought();
         if (thought == null || thought.isEmpty()) return;
@@ -2693,9 +2692,9 @@ public class GooseRenderer {
         if (!isAbove) {
             top = position.y + THOUGHT_GAP_ABOVE_GOOSE;
         }
-        left = SamMath.Clamp(left, THOUGHT_SCREEN_MARGIN,
+        left = MathUtil.clamp(left, THOUGHT_SCREEN_MARGIN,
                 Math.max(THOUGHT_SCREEN_MARGIN, worldWidth - THOUGHT_SCREEN_MARGIN - width));
-        top = SamMath.Clamp(top, THOUGHT_SCREEN_MARGIN,
+        top = MathUtil.clamp(top, THOUGHT_SCREEN_MARGIN,
                 Math.max(THOUGHT_SCREEN_MARGIN, worldHeight - THOUGHT_SCREEN_MARGIN - height));
         thoughtRect.set(left, top, left + width, top + height);
 
@@ -2728,7 +2727,7 @@ public class GooseRenderer {
         }
     }
 
-    private void renderSleepIndicator(Canvas canvas, Vector2 position, GooseAI ai) {
+    private void renderSleepIndicator(Canvas canvas, Vec2 position, GooseAI ai) {
         if (ai.getCurrentTask() != GooseTasks.GooseTask.Sleeping) return;
 
         Paint textPaint = sleepTextPaint;
@@ -2956,7 +2955,7 @@ public class GooseRenderer {
     /**
      * Draw a heart shape.
      */
-    private void drawHeart(Canvas canvas, Paint paint, Vector2 pos, float size) {
+    private void drawHeart(Canvas canvas, Paint paint, Vec2 pos, float size) {
         Path heart = heartPath;
         heart.rewind();
         float x = pos.x;
@@ -2975,7 +2974,7 @@ public class GooseRenderer {
     /**
      * Draw a 5-pointed star.
      */
-    private void drawStar(Canvas canvas, Paint paint, Vector2 pos, float size) {
+    private void drawStar(Canvas canvas, Paint paint, Vec2 pos, float size) {
         Path star = starPath;
         star.rewind();
         float outerRadius = size;
@@ -3002,7 +3001,7 @@ public class GooseRenderer {
     /**
      * Draw a music note.
      */
-    private void drawMusicNote(Canvas canvas, Paint paint, Vector2 pos, float size) {
+    private void drawMusicNote(Canvas canvas, Paint paint, Vec2 pos, float size) {
         paint.setStyle(Paint.Style.FILL);
 
         // Note head
@@ -3033,7 +3032,7 @@ public class GooseRenderer {
     /**
      * Draw a sweat drop.
      */
-    private void drawSweatDrop(Canvas canvas, Paint paint, Vector2 pos, float size) {
+    private void drawSweatDrop(Canvas canvas, Paint paint, Vec2 pos, float size) {
         Path drop = dropPath;
         drop.rewind();
         drop.moveTo(pos.x, pos.y - size);
@@ -3048,7 +3047,7 @@ public class GooseRenderer {
     /**
      * Draw a sparkle/twinkle.
      */
-    private void drawSparkle(Canvas canvas, Paint paint, Vector2 pos, float size) {
+    private void drawSparkle(Canvas canvas, Paint paint, Vec2 pos, float size) {
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(1.5f);
 
@@ -3067,7 +3066,7 @@ public class GooseRenderer {
     /**
      * Draw anger mark (cross veins).
      */
-    private void drawAngerMark(Canvas canvas, Paint paint, Vector2 pos, float size) {
+    private void drawAngerMark(Canvas canvas, Paint paint, Vec2 pos, float size) {
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(2.5f);
 
@@ -3084,11 +3083,11 @@ public class GooseRenderer {
         canvas.drawOval(ellipseRect, paint);
     }
 
-    public void fillCircleFromCenter(Canvas canvas, Paint paint, Vector2 pos, int radius) {
+    public void fillCircleFromCenter(Canvas canvas, Paint paint, Vec2 pos, int radius) {
         fillEllipseFromCenter(canvas, paint, (int) pos.x, (int) pos.y, radius, radius);
     }
 
-    private void drawLine(Canvas canvas, Paint paint, Vector2 start, Vector2 end) {
+    private void drawLine(Canvas canvas, Paint paint, Vec2 start, Vec2 end) {
         canvas.drawLine(start.x, start.y, end.x, end.y, paint);
     }
 
@@ -3097,7 +3096,7 @@ public class GooseRenderer {
     /**
      * Trigger a celebration effect (confetti burst).
      */
-    public void triggerCelebration(Vector2 position) {
+    public void triggerCelebration(Vec2 position) {
         spawnParticleBurst(position, ParticleType.CONFETTI, 20);
         spawnParticleBurst(position, ParticleType.STAR, 8);
     }
@@ -3105,7 +3104,7 @@ public class GooseRenderer {
     /**
      * Trigger love effect (heart burst).
      */
-    public void triggerLoveEffect(Vector2 position) {
+    public void triggerLoveEffect(Vec2 position) {
         spawnParticleBurst(position, ParticleType.HEART, 10);
         spawnParticleBurst(position, ParticleType.SPARKLE, 5);
     }
@@ -3113,7 +3112,7 @@ public class GooseRenderer {
     /**
      * Trigger excitement effect (stars).
      */
-    public void triggerExcitement(Vector2 position) {
+    public void triggerExcitement(Vec2 position) {
         spawnParticleBurst(position, ParticleType.STAR, 12);
     }
 

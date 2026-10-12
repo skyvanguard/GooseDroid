@@ -4,7 +4,7 @@ import android.graphics.*;
 import com.cfks.goosedroid.PetNeeds;
 import com.cfks.goosedroid.PetPersonality;
 import com.cfks.goosedroid.GooseEvolution;
-import com.cfks.goosedroid.SamEngine.*;
+import com.cfks.goosedroid.core.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -106,7 +106,7 @@ public class GooseDreams {
     /**
      * Iniciar a soñar.
      */
-    public static void startDreaming(Vector2 goosePosition) {
+    public static void startDreaming(Vec2 goosePosition) {
         isDreaming = true;
         dreamStartTime = Time.time;
         bubbles.clear();
@@ -164,7 +164,7 @@ public class GooseDreams {
     /**
      * Actualizar sistema de sueños.
      */
-    public static void update(float deltaTime, Vector2 goosePosition) {
+    public static void update(float deltaTime, Vec2 goosePosition) {
         if (!isDreaming) return;
 
         // Actualizar burbujas existentes
@@ -191,7 +191,7 @@ public class GooseDreams {
     /**
      * Crear una burbuja de sueño.
      */
-    private static void spawnDreamBubble(Vector2 goosePosition) {
+    private static void spawnDreamBubble(Vec2 goosePosition) {
         String[] symbols = currentDreamType.symbols;
         String content = symbols[random.nextInt(symbols.length)];
 

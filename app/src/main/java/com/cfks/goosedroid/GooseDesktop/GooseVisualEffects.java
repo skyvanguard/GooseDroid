@@ -1,7 +1,7 @@
 package com.cfks.goosedroid.GooseDesktop;
 
 import android.graphics.*;
-import com.cfks.goosedroid.SamEngine.*;
+import com.cfks.goosedroid.core.*;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -393,7 +393,7 @@ public class GooseVisualEffects {
     /**
      * Actualizar todas las partículas y efectos.
      */
-    public static void update(float deltaTime, Vector2 goosePosition, boolean isMoving) {
+    public static void update(float deltaTime, Vec2 goosePosition, boolean isMoving) {
         // Actualizar partículas existentes
         Iterator<Particle> particleIterator = particles.iterator();
         while (particleIterator.hasNext()) {
@@ -440,7 +440,7 @@ public class GooseVisualEffects {
     /**
      * Renderizar todos los efectos.
      */
-    public static void render(Canvas canvas, Vector2 goosePosition) {
+    public static void render(Canvas canvas, Vec2 goosePosition) {
         Paint paint = new Paint();
         paint.setAntiAlias(true);
 
@@ -586,7 +586,7 @@ public class GooseVisualEffects {
     /**
      * Renderizar glow dorado.
      */
-    private static void renderGoldenGlow(Canvas canvas, Paint paint, Vector2 pos) {
+    private static void renderGoldenGlow(Canvas canvas, Paint paint, Vec2 pos) {
         paint.setStyle(Paint.Style.FILL);
 
         // Múltiples círculos con gradiente
@@ -602,7 +602,7 @@ public class GooseVisualEffects {
     /**
      * Renderizar efecto disco.
      */
-    private static void renderDiscoEffect(Canvas canvas, Paint paint, Vector2 pos) {
+    private static void renderDiscoEffect(Canvas canvas, Paint paint, Vec2 pos) {
         // Color HSV cambiante
         float[] hsv = {discoHue, 1f, 1f};
         int color = Color.HSVToColor(hsv);

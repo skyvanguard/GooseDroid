@@ -1,6 +1,6 @@
 package com.cfks.goosedroid.GooseDesktop;
 
-import com.cfks.goosedroid.SamEngine.*;
+import com.cfks.goosedroid.core.*;
 
 /**
  * Task state classes for goose behaviors.
@@ -53,18 +53,18 @@ public class GooseTasks {
         public float pauseDuration;
 
         public static float getRandomPauseDuration() {
-            return 1f + (float) SamMath.Rand.nextDouble();
+            return 1f + (float) MathUtil.RNG.nextDouble();
         }
 
         public static float getRandomWanderDuration(float firstWanderTime, float minTime, float maxTime) {
             if (Time.time < 1f) {
                 return firstWanderTime;
             }
-            return SamMath.RandomRange(minTime, maxTime);
+            return MathUtil.randomRange(minTime, maxTime);
         }
 
         public static float getRandomWalkTime() {
-            return SamMath.RandomRange(1f, 6f);
+            return MathUtil.randomRange(1f, 6f);
         }
     }
 
@@ -73,10 +73,10 @@ public class GooseTasks {
      */
     public static class NabMouseTask {
         public Stage currentStage;
-        public Vector2 dragToPoint;
+        public Vec2 dragToPoint;
         public double grabbedOriginalTime;
         public double chaseStartTime;
-        public Vector2 originalVectorToMouse;
+        public Vec2 originalVectorToMouse;
 
         public final float MouseGrabDistance = 15f;
         public final float MouseSuccTime = 0.06f;
@@ -85,7 +85,7 @@ public class GooseTasks {
         public final float MaxRunTime = 4f;
         public final float GiveUpTime = 9f;
 
-        public static Vector2 StruggleRange = new Vector2(3f, 3f);
+        public static Vec2 StruggleRange = new Vec2(3f, 3f);
 
         public enum Stage {
             SeekingMouse,
@@ -102,10 +102,10 @@ public class GooseTasks {
         public float secsToWait;
         public double waitStartTime;
         public ScreenDirection screenDirection;
-        public Vector2 windowOffsetToBeak;
+        public Vec2 windowOffsetToBeak;
 
         public static float getWaitTime() {
-            return SamMath.RandomRange(2f, 3.5f);
+            return MathUtil.randomRange(2f, 3.5f);
         }
 
         public enum Stage {
