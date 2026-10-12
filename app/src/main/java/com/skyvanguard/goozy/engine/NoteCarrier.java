@@ -4,7 +4,7 @@ import com.skyvanguard.goozy.core.Vec2;
 
 /**
  * Ciclo de vida de una nota que el ganso trae desde el borde de la pantalla,
- * como en el Desktop Goose original. Solo lógica, sin Android.
+ * Solo lógica, sin Android.
  *
  * NONE → WAITING (el ganso fue a buscarla) → CARRIED (la arrastra)
  *      → PLACED (queda en pantalla un rato) → NONE

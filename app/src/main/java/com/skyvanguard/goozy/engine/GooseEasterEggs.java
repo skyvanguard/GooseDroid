@@ -501,12 +501,9 @@ public class GooseEasterEggs {
         if (lower.contains("bread") || lower.contains("pan")) {
             return "*excited honking*";
         }
-        if (lower.contains("untitled")) {
+        if (lower.contains("goozy rules")) {
             unlockSecret(SecretUnlock.SECRET_WORD);
-            return "~UNTITLED GOOSE GAME~";
-        }
-        if (lower.contains("peace was never")) {
-            return "...an option. >:)";
+            return "~that's me! HONK~";
         }
         if (lower.contains("hello") || lower.contains("hola")) {
             return "HONK! (Hello!)";

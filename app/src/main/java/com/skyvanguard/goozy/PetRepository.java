@@ -25,7 +25,7 @@ public final class PetRepository {
     private static final float DEFAULT_HAPPINESS = 75f;
     private static final float DEFAULT_MISCHIEF = 50f;
     private static final float DEFAULT_CARE = 100f;
-    private static final String DEFAULT_PET_NAME = "Goose";
+    private static final String DEFAULT_PET_NAME = "Goozy";
 
     private static boolean isLoaded = false;
 

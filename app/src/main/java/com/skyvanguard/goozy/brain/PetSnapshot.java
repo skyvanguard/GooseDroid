@@ -68,7 +68,7 @@ public final class PetSnapshot {
         private static final int UNKNOWN_BATTERY = -1;
         private static final int DEFAULT_HOUR = 12;
 
-        private String petName = "Goose";
+        private String petName = "Goozy";
         private float hunger = 50f;
         private float energy = 100f;
         private float happiness = 75f;

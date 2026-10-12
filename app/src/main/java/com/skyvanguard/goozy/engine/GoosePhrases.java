@@ -424,7 +424,7 @@ public final class GoosePhrases {
                 "cozy~", "relaxed", "chill~", "serene", "tranquil",
                 // Random phrases
                 "la la la~", "doo bee doo", "tra la la", "humming~", "bee boop",
-                "goose life", "am goose", "goose moment", "just goose", "goose~",
+                "goose life", "goozy mode", "goose moment", "just goose", "goose~",
                 // Silly
                 "banana?", "potato", "beans!", "spaghetti?", "waffles!",
                 "random!", "chaos~", "yeet!", "bruh", "vibe check",

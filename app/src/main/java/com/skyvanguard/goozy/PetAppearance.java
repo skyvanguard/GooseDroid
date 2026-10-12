@@ -21,7 +21,7 @@ public class PetAppearance {
     public int creatureType = 0; // 0=ganso, 1=pato, 2=pollito, 3=personalizado
 
     // Nombre de la mascota
-    public String petName = "Goose";
+    public String petName = "Goozy";
 
     // Definiciones de accesorios (constantes estáticas)
     public static final String[] HAT_NAMES = {
@@ -181,7 +181,7 @@ public class PetAppearance {
         hatId = 0;
         accessoryId = 0;
         creatureType = 0;
-        petName = "Goose";
+        petName = "Goozy";
         applyToGoose();
     }
 
@@ -197,7 +197,7 @@ public class PetAppearance {
         hatId = Math.max(0, Math.min(HAT_NAMES.length - 1, savedHat));
         accessoryId = Math.max(0, Math.min(ACCESSORY_NAMES.length - 1, savedAccessory));
         creatureType = Math.max(0, Math.min(CREATURE_NAMES.length - 1, savedCreature));
-        petName = (savedName != null && !savedName.isEmpty()) ? savedName : "Goose";
+        petName = (savedName != null && !savedName.isEmpty()) ? savedName : "Goozy";
         applyToGoose();
     }
 

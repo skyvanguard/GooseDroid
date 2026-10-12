@@ -63,14 +63,14 @@ public class GooseTrolling {
     private static final String[] TROLL_NOTIFICATION_MESSAGES = {
             "Just kidding! It's just me, the goose. Honk!",
             "Ha! Made you look! - Your friendly neighborhood goose",
-            "Peace was never an option. - The Goose",
-            "I'm a goose. I cause problems on purpose.",
+            "Chaos is a love language. - Goozy",
+            "I'm a goose. Being a menace is my cardio.",
             "Gotcha! Now pet me.",
             "This is not a drill! ...It's a goose.",
             "Error 404: Your attention not found. HONK!",
             "Your phone is fine. But are YOU fine?",
             "The goose demands tribute (snacks).",
-            "Beep boop. I am goose. Feed me.",
+            "Beep boop. Goozy needs a snack.",
             "Surprise! It's goose time!",
             "No virus here, just chaos.",
             "You fell for it! Classic human.",
@@ -80,19 +80,19 @@ public class GooseTrolling {
 
     private static final String[] CLIPBOARD_TROLLS = {
             "HONK HONK HONK",
-            "I am goose. I cause problems.",
-            "Peace was never an option.",
+            "Goozy was here.",
+            "Chaos is a love language.",
             "The goose was here.",
             "*aggressive honking*",
-            "Untitled Goose Game IRL",
+            "Certified menace, certified cute",
             "You've been goosed!",
-            "Hjönk hjönk am goose",
-            "rake in the lake",
+            "honk honk, it's goose o'clock",
+            "bread first, questions later",
             "Mess with the honk, get the bonk"
     };
 
     private static final String[] GOOSE_QUOTES = {
-            "\"Peace was never an option.\" - The Goose",
+            "\"Bread first, questions later.\" - Goozy",
             "\"Honk.\" - Ancient Goose Proverb",
             "\"To honk or not to honk? HONK.\" - Goosespeare",
             "\"I think, therefore I honk.\" - René Gooscartes",

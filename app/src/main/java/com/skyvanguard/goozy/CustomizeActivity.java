@@ -194,7 +194,7 @@ public class CustomizeActivity extends AppCompatActivity {
 
     private void updatePreview() {
         String name = petNameInput.getText().toString();
-        if (name.isEmpty()) name = "Goose";
+        if (name.isEmpty()) name = "Goozy";
 
         int creatureType = getSelectedCreatureType();
         String creatureName = PetAppearance.CREATURE_NAMES[creatureType];
@@ -227,7 +227,7 @@ public class CustomizeActivity extends AppCompatActivity {
     private void saveAndClose() {
         // Save name
         String name = petNameInput.getText().toString();
-        if (name.isEmpty()) name = "Goose";
+        if (name.isEmpty()) name = "Goozy";
         PetAppearance.get().petName = name;
 
         // Save creature type
