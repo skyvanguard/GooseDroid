@@ -368,7 +368,7 @@ public class TheGoose implements
         stats.sessionStartTime = System.currentTimeMillis();
 
         // Initialize sound
-        Sound.Init(ctx, string2boolean(ca.get("SilenceSounds")));
+        Sound.init(ctx, string2boolean(ca.get("SilenceSounds")));
 
         // Initialize trolling system
         GooseTrolling.init(ctx);
@@ -381,7 +381,7 @@ public class TheGoose implements
                                    com.cfks.goosedroid.GooseEvolution.Stage newStage) {
                 // Celebrate evolution!
                 touchHandler.showEmoji("EVOLVED!");
-                Sound.PlayAchievement();
+                Sound.achievement();
                 // Update size based on evolution
                 DrawScale = 2.5f * newStage.sizeMultiplier;
             }
@@ -389,7 +389,7 @@ public class TheGoose implements
             @Override
             public void onLevelUp(int newLevel) {
                 touchHandler.showEmoji("Lv." + newLevel + "!");
-                Sound.PlayHappy();
+                Sound.happy();
             }
 
             @Override
@@ -507,8 +507,7 @@ public class TheGoose implements
         com.cfks.goosedroid.brain.BrainController.stop();
         GooseEasterEggs.deactivateMode();
         MiniGames.cancelGame();
-        Sound.StopMusic();
-        Sound.releaseAll();
+        Sound.release();
 
         // Cleanup trolling
         GooseTrolling.cleanup();

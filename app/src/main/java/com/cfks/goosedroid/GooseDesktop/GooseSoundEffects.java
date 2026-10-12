@@ -129,7 +129,7 @@ public class GooseSoundEffects {
                 playHonkSequence(new float[]{0.8f, 1.0f, 1.2f, 1.5f, 2.0f});
                 break;
             default:
-                Sound.PlayHonk();
+                Sound.honk();
                 break;
         }
     }
@@ -139,7 +139,7 @@ public class GooseSoundEffects {
      */
     private static void playHonkWithPitch(float pitch) {
         // Por ahora usamos el honk normal - en futuro se puede implementar pitch shifting
-        Sound.PlayHonk();
+        Sound.honk();
     }
 
     /**

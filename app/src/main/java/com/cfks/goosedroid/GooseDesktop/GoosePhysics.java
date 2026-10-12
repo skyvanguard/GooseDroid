@@ -544,7 +544,7 @@ public class GoosePhysics {
         stretchFactor = 1f + SQUASH_AMOUNT;
         squashFactor = 1f - SQUASH_AMOUNT * 0.5f;
 
-        Sound.PlayHonk();
+        Sound.honk();
     }
 
     /**
@@ -578,7 +578,7 @@ public class GoosePhysics {
 
         // Play sound for hard landings
         if (impactVelocity > 200f) {
-            Sound.PlayPat();
+            Sound.pat();
         }
 
         if (callback != null) {
@@ -756,7 +756,7 @@ public class GoosePhysics {
             // Step bounce
             stepBounce = 2f;
 
-            Sound.PlayPat();
+            Sound.pat();
             if (Time.time < trackMudEndTime) {
                 addFootMark(lFootPos);
             }
@@ -769,7 +769,7 @@ public class GoosePhysics {
                 // Step bounce
                 stepBounce = 2f;
 
-                Sound.PlayPat();
+                Sound.pat();
                 if (Time.time < trackMudEndTime) {
                     addFootMark(rFootPos);
                 }

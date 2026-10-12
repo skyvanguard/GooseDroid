@@ -812,14 +812,14 @@ public class GooseTouchHandler {
     // ============== GESTURE HANDLERS ==============
 
     private void onTap() {
-        Sound.HONCC();
+        Sound.honk();
         showEmoji("!");
         PetPersonality.get().onPetted();
         addHappiness(3);
     }
 
     private void onDoubleTap() {
-        Sound.PlayHonk();
+        Sound.honk();
         showEmoji("!!");
 
         // Make goose jump
@@ -832,7 +832,7 @@ public class GooseTouchHandler {
     }
 
     private void onTripleTap() {
-        Sound.PlayHonk();
+        Sound.honk();
         showEmoji("!!!");
 
         // Make goose do a big jump
@@ -859,7 +859,7 @@ public class GooseTouchHandler {
 
     private void onPet() {
         PetNeeds.get().pet();
-        Sound.PlayPat();
+        Sound.pat();
         showEmoji("<3");
         lastPetTime = System.currentTimeMillis();
         totalPets++;
@@ -868,7 +868,7 @@ public class GooseTouchHandler {
     }
 
     private void onScratch() {
-        Sound.PlayPat();
+        Sound.pat();
         showEmoji("~");
         addHappiness(12);
 
@@ -880,7 +880,7 @@ public class GooseTouchHandler {
     }
 
     private void onBoop() {
-        Sound.HONCC();
+        Sound.honk();
         showEmoji("*boop*");
         totalBoops++;
         addHappiness(8);
@@ -898,7 +898,7 @@ public class GooseTouchHandler {
     }
 
     private void onTickle() {
-        Sound.PlayPat();
+        Sound.pat();
         showEmoji("jaja");
         addHappiness(10);
         PetPersonality.get().onPlayed();
@@ -911,7 +911,7 @@ public class GooseTouchHandler {
     }
 
     private void onPoke() {
-        Sound.HONCC();
+        Sound.honk();
         showEmoji("?");
         addHappiness(2);
     }
@@ -954,7 +954,7 @@ public class GooseTouchHandler {
 
     private void onCircle(boolean clockwise) {
         showEmoji(clockwise ? "@" : "@");
-        Sound.PlayHonk();
+        Sound.honk();
 
         // Spin effect
         GoosePhysics physics = callback.getPhysics();
@@ -989,7 +989,7 @@ public class GooseTouchHandler {
     }
 
     private void onShake() {
-        Sound.PlayHonk();
+        Sound.honk();
         showEmoji("@_@");
 
         // Goose gets dizzy!
@@ -1008,7 +1008,7 @@ public class GooseTouchHandler {
     }
 
     private void onBellyRub() {
-        Sound.PlayHonk();
+        Sound.honk();
         showEmoji("\u2764\uFE0F"); // Heart emoji
 
         // Goose loves belly rubs!
@@ -1024,7 +1024,7 @@ public class GooseTouchHandler {
     }
 
     private void onZigzag() {
-        Sound.PlayHonk();
+        Sound.honk();
         showEmoji("\u26A1"); // Lightning bolt
 
         // Exciting! Make goose energetic
@@ -1043,7 +1043,7 @@ public class GooseTouchHandler {
     }
 
     private void onNoseBoop() {
-        Sound.HONCC();
+        Sound.honk();
         showEmoji("\uD83D\uDC23"); // Hatching chick (cute)
 
         // Very specific and affectionate
@@ -1061,7 +1061,7 @@ public class GooseTouchHandler {
     }
 
     private void onWingFlap() {
-        Sound.PlayHonk();
+        Sound.honk();
         showEmoji("\uD83E\uDD85"); // Eagle (flying)
 
         // Makes goose want to fly/jump

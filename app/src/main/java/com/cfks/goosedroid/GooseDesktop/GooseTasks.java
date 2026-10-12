@@ -24,7 +24,6 @@ public class GooseTasks {
         NabMouse,
         CollectWindow_Meme,
         CollectWindow_Notepad,
-        CollectWindow_Donate,
         CollectWindow_DONOTSET,
         TrackMud,
         Count,

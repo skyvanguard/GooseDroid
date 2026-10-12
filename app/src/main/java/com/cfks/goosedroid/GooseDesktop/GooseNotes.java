@@ -28,20 +28,13 @@ import java.util.Random;
  */
 public final class GooseNotes {
     private static final String TAG = "GooseNotes";
-    private static final String NOTES_DIRECTORY = "Text/NotepadMessages/";
+    /** Un archivo por idioma; las notas se separan con una línea "---". */
+    private static final String SPANISH_NOTES = "notes/es.txt";
+    private static final String ENGLISH_NOTES = "notes/en.txt";
+    private static final String NOTE_SEPARATOR = "\n---\n";
     private static final String BYTE_ORDER_MARK = "﻿";
     private static final int MAX_NOTE_CHARS = 400;
-
-    /** Notas incluidas por idioma. */
-    private static final String[] SPANISH_NOTES = {
-        "soy ganso.txt", "la paz nunca.txt", "lista de tareas.txt",
-        "rutina de la mañana.txt", "sabiduria.txt", "dificil escribir.txt", "gooseASCII1.txt",
-    };
-    private static final String[] ENGLISH_NOTES = {
-        "am goose.txt", "good work.txt", "hard to type.txt", "i cause problems.txt",
-        "morning routine.txt", "peace was never.txt", "todo list.txt", "wisdom.txt",
-        "gooseASCII1.txt",
-    };
+    private static final int MAX_FILE_BYTES = 64 * 1024;
 
     // Medidas en unidades de mundo
     private static final float CARD_WIDTH = 120f;
@@ -176,21 +169,22 @@ public final class GooseNotes {
     }
 
     private static String loadRandomNote(Context context, boolean isSpanish) {
-        String[] notes = isSpanish ? SPANISH_NOTES : ENGLISH_NOTES;
-        String fileName = notes[random.nextInt(notes.length)];
+        String fileName = isSpanish ? SPANISH_NOTES : ENGLISH_NOTES;
         if (context == null) return "HONK";
-        try (InputStream in = context.getAssets().open(NOTES_DIRECTORY + fileName)) {
+        try (InputStream in = context.getAssets().open(fileName)) {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[4096];
             int read;
-            while ((read = in.read(buffer)) >= 0 && out.size() < MAX_NOTE_CHARS * 4) {
+            while ((read = in.read(buffer)) >= 0 && out.size() < MAX_FILE_BYTES) {
                 out.write(buffer, 0, read);
             }
-            String text = new String(out.toByteArray(), StandardCharsets.UTF_8)
-                    .replace(BYTE_ORDER_MARK, "").trim();
+            String[] notes = new String(out.toByteArray(), StandardCharsets.UTF_8)
+                    .replace(BYTE_ORDER_MARK, "").replace("\r\n", "\n").split(NOTE_SEPARATOR);
+            String text = notes[random.nextInt(notes.length)].trim();
+            if (text.isEmpty()) return "HONK";
             return text.length() > MAX_NOTE_CHARS ? text.substring(0, MAX_NOTE_CHARS) : text;
         } catch (IOException e) {
-            Log.w(TAG, "No se pudo leer la nota " + fileName, e);
+            Log.w(TAG, "No se pudieron leer las notas " + fileName, e);
             return "HONK";
         }
     }

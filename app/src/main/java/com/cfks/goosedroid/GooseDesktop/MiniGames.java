@@ -172,7 +172,7 @@ public class MiniGames {
             callback.onGameStarted(type);
         }
 
-        Sound.PlayPlay();
+        Sound.playful();
     }
 
     /** Termina el juego en curso sin premio, sonido ni callback. */
@@ -186,9 +186,9 @@ public class MiniGames {
 
         if (won) {
             PetNeeds.get().happiness = Math.min(100, PetNeeds.get().happiness + 20);
-            Sound.PlayWin();
+            Sound.achievement();
         } else {
-            Sound.PlayLose();
+            Sound.sad();
         }
 
         if (callback != null) {
@@ -333,7 +333,7 @@ public class MiniGames {
             } else {
                 // Play honk for current note
                 if ((int)((patternTimer - deltaTime) / 0.6f) != noteToShow) {
-                    Sound.HONCC();
+                    Sound.honk();
                 }
             }
         }
@@ -371,7 +371,7 @@ public class MiniGames {
                 showingPattern = false;
                 patternTimer = 0;
             } else if ((int)((patternTimer - deltaTime) / 0.8f) != noteToShow) {
-                Sound.HONCC();
+                Sound.honk();
             }
         }
     }
@@ -477,7 +477,7 @@ public class MiniGames {
                     if (obj.active && obj.contains(x, y)) {
                         obj.active = false;
                         addScore(obj.points);
-                        Sound.PlayScore();
+                        Sound.score();
                         break;
                     }
                 }
@@ -489,7 +489,7 @@ public class MiniGames {
                     if (obj.active && obj.contains(x, y)) {
                         obj.active = false;
                         addScore(obj.points);
-                        Sound.PlayScore();
+                        Sound.score();
                         break;
                     }
                 }
@@ -537,7 +537,7 @@ public class MiniGames {
                 // Correct!
                 currentPatternIndex++;
                 addScore(10);
-                Sound.HONCC();
+                Sound.honk();
 
                 if (currentPatternIndex >= honkPattern.size()) {
                     // Completed pattern
@@ -546,7 +546,7 @@ public class MiniGames {
                 }
             } else {
                 // Wrong!
-                Sound.PlaySad();
+                Sound.sad();
                 // Reset pattern
                 currentPatternIndex = 0;
                 playerPattern.clear();
@@ -555,14 +555,14 @@ public class MiniGames {
     }
 
     private static void checkMemoryInput(int quadrant) {
-        Sound.HONCC();
+        Sound.honk();
         playerPattern.add(quadrant);
 
         int idx = playerPattern.size() - 1;
         if (idx < honkPattern.size()) {
             if (!honkPattern.get(idx).equals(playerPattern.get(idx))) {
                 // Wrong!
-                Sound.PlaySad();
+                Sound.sad();
                 playerPattern.clear();
                 currentPatternIndex = 0;
                 // Show pattern again

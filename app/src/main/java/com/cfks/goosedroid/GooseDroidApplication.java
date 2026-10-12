@@ -139,9 +139,6 @@ public class GooseDroidApplication extends Application {
             // Clean up notification manager
             PetNotificationManager.cleanup();
 
-            // Stop sounds
-            Sound.StopMusic();
-
             Log.i(TAG, "Resources cleaned up");
         } catch (Exception e) {
             Log.e(TAG, "Error cleaning up resources", e);
@@ -198,8 +195,6 @@ public class GooseDroidApplication extends Application {
             return;
         }
         try {
-            // Stop background music to free audio resources
-            Sound.StopMusic();
             Log.i(TAG, "Non-critical resources released");
         } catch (Exception e) {
             Log.e(TAG, "Error releasing non-critical resources", e);
@@ -215,11 +210,8 @@ public class GooseDroidApplication extends Application {
             return;
         }
         try {
-            // Stop all sounds
-            Sound.StopMusic();
-
             // Release sound resources
-            Sound.releaseAll();
+            Sound.release();
 
             // Force garbage collection
             System.gc();

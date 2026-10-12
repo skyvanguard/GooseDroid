@@ -81,7 +81,7 @@ public class GooseBehaviorTree {
                     .addChild(new BehaviorTree.Cooldown(
                         new BehaviorTree.LambdaAction("BegForFood", bb -> {
                             showEmoji("HUNGRY!");
-                            Sound.HONCC();
+                            Sound.honk();
                             currentBehavior = "BeggingForFood";
                             seekAttention();
                             return BehaviorTree.Status.SUCCESS;
@@ -308,7 +308,7 @@ public class GooseBehaviorTree {
                     .addChild(new BehaviorTree.LambdaAction("Honk", bb -> {
                         currentBehavior = "Honking";
                         showEmoji("HONK!");
-                        Sound.HONCC();
+                        Sound.honk();
                         return BehaviorTree.Status.SUCCESS;
                     })), 5f))
             // Default wander

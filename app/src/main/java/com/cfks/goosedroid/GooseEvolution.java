@@ -241,7 +241,7 @@ public class GooseEvolution {
             // Check for ability unlocks
             checkAbilityUnlocks(context);
 
-            Sound.PlayAchievement();
+            Sound.achievement();
         }
 
         save(context);
@@ -311,7 +311,7 @@ public class GooseEvolution {
             }
 
             // Play evolution sound
-            Sound.PlayAchievement();
+            Sound.achievement();
 
             save(context);
         }

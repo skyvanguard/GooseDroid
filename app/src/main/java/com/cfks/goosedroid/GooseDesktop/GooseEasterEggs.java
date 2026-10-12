@@ -269,7 +269,7 @@ public class GooseEasterEggs {
 
         // Sonido especial
         if (!Sound.isSilenced()) {
-            Sound.PlayHonk();
+            Sound.honk();
         }
     }
 

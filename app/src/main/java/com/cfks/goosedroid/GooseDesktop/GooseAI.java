@@ -156,7 +156,6 @@ public class GooseAI {
     private GooseTasks.CollectWindowTask taskCollectWindowInfo;
     private GooseTasks.TrackMudTask taskTrackMudInfo;
 
-    private boolean hasAskedForDonation = false;
     private boolean overrideExtendNeck = false;
 
     // Pet state timers
@@ -360,7 +359,6 @@ public class GooseAI {
                 break;
             case CollectWindow_Meme:
             case CollectWindow_Notepad:
-            case CollectWindow_Donate:
                 break;
             case CollectWindow_DONOTSET:
                 runCollectWindow();
@@ -701,7 +699,7 @@ public class GooseAI {
         switch (event) {
             case RANDOM_HONK:
                 eventDuration = 0.5f;
-                Sound.HONCC();
+                Sound.honk();
                 break;
             case ZOOMIES:
                 eventDuration = 3f;
@@ -718,14 +716,14 @@ public class GooseAI {
                 break;
             case JUMP_SCARE:
                 eventDuration = 0.8f;
-                Sound.HONCC();
+                Sound.honk();
                 break;
             case DANCE:
                 eventDuration = 2.5f;
                 break;
             case SNEEZE:
                 eventDuration = 1f;
-                Sound.HONCC();
+                Sound.honk();
                 break;
             case YAWN:
                 eventDuration = 2f;
@@ -753,12 +751,12 @@ public class GooseAI {
             case LAY_EGG:
                 eventDuration = 2f;
                 callback.getTouchHandler().showEmoji("EGG!");
-                Sound.PlayPat();
+                Sound.pat();
                 break;
             case FIGHT_REFLECTION:
                 eventDuration = 3f;
                 callback.getTouchHandler().showEmoji("FIGHT!");
-                Sound.HONCC();
+                Sound.honk();
                 break;
             case COSTUME_CHANGE:
                 eventDuration = 1f;
@@ -776,7 +774,7 @@ public class GooseAI {
                 break;
             case BELLY_FLOP:
                 eventDuration = 1.5f;
-                Sound.PlayPat();
+                Sound.pat();
                 callback.getTouchHandler().showEmoji("FLOP!");
                 break;
             case TROLL_NOTIFICATION:
@@ -786,7 +784,7 @@ public class GooseAI {
                 break;
             case VIBRATE_HONK:
                 eventDuration = 1f;
-                Sound.HONCC();
+                Sound.honk();
                 GooseTrolling.vibrateHonk();
                 break;
             default:
@@ -801,12 +799,12 @@ public class GooseAI {
     private void playSingingSequence() {
         callback.getTouchHandler().showEmoji("LA LA LA");
         // Schedule honks at musical intervals
-        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> Sound.HONCC(), 0);
-        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> Sound.HONCC(), 400);
-        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> Sound.HONCC(), 800);
-        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> Sound.HONCC(), 1000);
-        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> Sound.HONCC(), 1400);
-        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> Sound.PlayHappy(), 2000);
+        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> Sound.honk(), 0);
+        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> Sound.honk(), 400);
+        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> Sound.honk(), 800);
+        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> Sound.honk(), 1000);
+        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> Sound.honk(), 1400);
+        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> Sound.happy(), 2000);
     }
 
     /**
@@ -921,7 +919,7 @@ public class GooseAI {
                     Vec2.mul(Vec2.fromDegrees(fightAngle), 30f)
                 ));
                 if (Math.random() < 0.1f) {
-                    Sound.HONCC();
+                    Sound.honk();
                 }
                 overrideExtendNeck = Math.random() < 0.5f;
                 break;
@@ -1167,7 +1165,7 @@ public class GooseAI {
             callback.getTouchHandler().showEmoji("?");
         } else if (rand < 0.15f) {
             // Honk for no reason
-            Sound.HONCC();
+            Sound.honk();
             callback.getTouchHandler().showEmoji("HONK!");
         } else if (rand < 0.25f) {
             // Show a thought
@@ -1199,7 +1197,7 @@ public class GooseAI {
             callback.getTouchHandler().showEmoji("*preen*");
         } else if (rand < 0.55f) {
             // Honk
-            Sound.HONCC();
+            Sound.honk();
         } else if (rand < 0.65f) {
             // Shake
             triggerRandomEvent(RandomEvent.SHAKE);
@@ -1295,7 +1293,7 @@ public class GooseAI {
                     physics.setTrackMudEndTime(Time.time + 15f);
                     PetNeeds.get().soil(PetNeeds.MUD_SOIL_AMOUNT);
                     taskTrackMudInfo.stage = GooseTasks.TrackMudTask.Stage.RunningWandering;
-                    Sound.PlayMudSquith();
+                    Sound.mud();
                 }
                 break;
             case RunningWandering:
@@ -1366,7 +1364,7 @@ public class GooseAI {
             memory.recordFeed();
             eatStartTime = 0;
             callback.getTouchHandler().showEmoji("YUM");
-            Sound.PlayPat();
+            Sound.pat();
             setTask(GooseTasks.GooseTask.Wander, false);
         }
     }
@@ -1390,7 +1388,7 @@ public class GooseAI {
 
         // Occasionally honk while playing
         if (Math.random() < 0.01) {
-            Sound.HONCC();
+            Sound.honk();
         }
 
         if (elapsed > playDuration) {
@@ -1457,7 +1455,7 @@ public class GooseAI {
             happyActionCount = 0;
             physics.setSpeed(GooseTasks.SpeedTier.Run);
             callback.getTouchHandler().showEmoji(":D");
-            Sound.PlayHappy();
+            Sound.happy();
         }
 
         float elapsed = (float) (Time.time - happyStartTime);
@@ -1468,7 +1466,7 @@ public class GooseAI {
             happyActionCount++;
         } else if (elapsed > 1.5f && happyActionCount == 1) {
             callback.getTouchHandler().showEmoji("WHEEE!");
-            Sound.HONCC();
+            Sound.honk();
             happyActionCount++;
         } else if (elapsed > 2.5f && happyActionCount == 2) {
             callback.getTouchHandler().showEmoji("<3");
@@ -1485,7 +1483,7 @@ public class GooseAI {
 
         // Happy honks and expressions
         if (Math.random() < 0.03) {
-            Sound.HONCC();
+            Sound.honk();
             String[] happyEmojis = {":D", "YAY!", "^_^", "hehe!", "WOOP!"};
             callback.getTouchHandler().showEmoji(happyEmojis[(int)(Math.random() * happyEmojis.length)]);
         }
@@ -1542,7 +1540,7 @@ public class GooseAI {
         physics.setTargetPos(screenCenter);
 
         if (Math.random() < 0.01) {
-            Sound.HONCC();
+            Sound.honk();
             callback.getTouchHandler().showEmoji("!");
         }
 
@@ -1571,11 +1569,11 @@ public class GooseAI {
             pettingReactionCount++;
         } else if (pettingTime > 2.5f && pettingReactionCount == 1) {
             callback.getTouchHandler().showEmoji("<3");
-            Sound.PlayPat();
+            Sound.pat();
             pettingReactionCount++;
         } else if (pettingTime > 4f && pettingReactionCount == 2) {
             callback.getTouchHandler().showEmoji("LOVE!");
-            Sound.PlayHappy();
+            Sound.happy();
             pettingReactionCount++;
         } else if (pettingTime > 6f && pettingReactionCount == 3) {
             // Extra happy - special reaction
@@ -1656,11 +1654,6 @@ public class GooseAI {
             return;
         }
 
-        if (Time.time > 480f && !hasAskedForDonation) {
-            hasAskedForDonation = true;
-            setTask(GooseTasks.GooseTask.CollectWindow_Donate, true);
-            return;
-        }
 
         // NabMouse no está implementado en Android: nunca se elige.
         GooseTasks.GooseTask task = gooseTaskWeightedList[taskPicker.next()];
@@ -1734,7 +1727,7 @@ public class GooseAI {
 
     public void setTask(GooseTasks.GooseTask task, boolean honk) {
         if (honk) {
-            Sound.HONCC();
+            Sound.honk();
             memory.lastHonkTime = Time.time;
         }
 
@@ -1769,7 +1762,6 @@ public class GooseAI {
                 break;
             case CollectWindow_Meme:
             case CollectWindow_Notepad:
-            case CollectWindow_Donate:
                 taskCollectWindowInfo = new GooseTasks.CollectWindowTask();
                 setTask(GooseTasks.GooseTask.CollectWindow_DONOTSET, false);
                 break;
@@ -1798,7 +1790,7 @@ public class GooseAI {
         if (callback != null && callback.isPetModeEnabled() && PetNeeds.get().energy > 20) {
             setTask(GooseTasks.GooseTask.Playing, false);
             callback.getTouchHandler().showEmoji(":D");
-            Sound.HONCC();
+            Sound.honk();
         }
     }
 
