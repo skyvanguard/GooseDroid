@@ -178,6 +178,8 @@ public class GooseTouchHandler {
 
     // Emoji display
     private String currentEmoji = "";
+    /** Distancia del punto de agarre al punto de suelo del ganso. */
+    private float grabOffsetX, grabOffsetY;
     private long emojiShowTime = 0;
     private float emojiScale = 1f;
     private float emojiOffsetY = 0f;
@@ -289,6 +291,12 @@ public class GooseTouchHandler {
         return currentZone == TouchZone.BEAK ||
                currentZone == TouchZone.BELLY ||
                currentZone == TouchZone.HEAD;
+    }
+
+    /** 0 recién mostrado, 1 a punto de desaparecer. */
+    public float getEmojiProgress() {
+        long elapsed = System.currentTimeMillis() - emojiShowTime;
+        return Math.min(1f, elapsed / (float) EMOJI_DURATION_MS);
     }
 
     public String getCurrentEmoji() {
@@ -418,9 +426,8 @@ public class GooseTouchHandler {
         }
 
         if (isBeingDragged) {
-            // Copia: la física modifica su posición en el lugar y touchPos
-            // se guarda como lastTouchPos
-            callback.onPositionChange(new Vec2(touchPos.x, touchPos.y));
+            // Se mantiene la distancia entre el dedo y el ganso del momento del agarre
+            callback.onPositionChange(new Vec2(touchPos.x + grabOffsetX, touchPos.y + grabOffsetY));
         } else {
             // Detect patterns
             detectPatterns(touchPos, delta, moveDist);
@@ -1103,6 +1110,9 @@ public class GooseTouchHandler {
 
     private void startDrag() {
         isBeingDragged = true;
+        Vec2 goosePos = callback.getPosition();
+        grabOffsetX = goosePos.x - touchStartPos.x;
+        grabOffsetY = goosePos.y - touchStartPos.y;
         callback.onTaskChange(GooseTasks.GooseTask.BeingDragged, false);
 
         GoosePhysics physics = callback.getPhysics();

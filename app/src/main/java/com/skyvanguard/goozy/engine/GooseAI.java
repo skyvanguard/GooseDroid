@@ -151,10 +151,10 @@ public class GooseAI {
     // ============== STATE ==============
 
     private GooseTasks.GooseTask currentTask = GooseTasks.GooseTask.Wander;
-    private GooseTasks.WanderTask taskWanderInfo;
-    private GooseTasks.NabMouseTask taskNabMouseInfo;
-    private GooseTasks.CollectWindowTask taskCollectWindowInfo;
-    private GooseTasks.TrackMudTask taskTrackMudInfo;
+    private GooseTasks.Stroll stroll;
+    private GooseTasks.FetchNote fetchNote;
+    private GooseTasks.MudDash mudDash;
+    private boolean hasStrolled;
 
     private boolean overrideExtendNeck = false;
 
@@ -199,17 +199,14 @@ public class GooseAI {
     private boolean useBehaviorTree = true;  // Toggle between old random AI and new BT
 
     // Task picker
-    private final GooseTasks.GooseTask[] gooseTaskWeightedList = new GooseTasks.GooseTask[] {
-        GooseTasks.GooseTask.TrackMud,
-        GooseTasks.GooseTask.TrackMud,
-        GooseTasks.GooseTask.CollectWindow_Meme,
-        GooseTasks.GooseTask.CollectWindow_Meme,
-        GooseTasks.GooseTask.CollectWindow_Notepad,
-        GooseTasks.GooseTask.NabMouse,
-        GooseTasks.GooseTask.NabMouse,
-        GooseTasks.GooseTask.NabMouse
+    /** Mandados que elige al terminar un paseo; los repetidos pesan más. */
+    private static final GooseTasks.GooseTask[] ERRANDS = {
+        GooseTasks.GooseTask.FetchNote,
+        GooseTasks.GooseTask.FetchNote,
+        GooseTasks.GooseTask.MudDash,
+        GooseTasks.GooseTask.Wander,
     };
-    private final ShuffleBag taskPicker = new ShuffleBag(gooseTaskWeightedList.length);
+    private final ShuffleBag errandPicker = new ShuffleBag(ERRANDS.length);
 
     // ============== CALLBACK ==============
 
@@ -261,7 +258,7 @@ public class GooseAI {
 
     // ============== INITIALIZATION ==============
 
-    public void initTaskPicker(PetConfigFile ca) {
+    public void initTaskPicker() {
         updateDayPeriod();
     }
 
@@ -352,19 +349,13 @@ public class GooseAI {
     private void runCurrentTask() {
         switch (currentTask) {
             case Wander:
-                runWander();
+                runStroll();
                 break;
-            case NabMouse:
-                runNabMouse();
+            case FetchNote:
+                runFetchNote();
                 break;
-            case CollectWindow_Meme:
-            case CollectWindow_Notepad:
-                break;
-            case CollectWindow_DONOTSET:
-                runCollectWindow();
-                break;
-            case TrackMud:
-                runTrackMud();
+            case MudDash:
+                runMudDash();
                 break;
             case Sleeping:
                 runSleeping();
@@ -470,7 +461,7 @@ public class GooseAI {
             case Seeking:
                 return PRIORITY_MEDIUM;
             case Happy:
-            case TrackMud:
+            case MudDash:
                 return PRIORITY_LOW;
             default:
                 return PRIORITY_IDLE;
@@ -1060,78 +1051,57 @@ public class GooseAI {
     private float nextWanderExpressionInterval = 2f;
     private int wanderActionCount = 0;
 
-    private void runWander() {
+    private void runStroll() {
         GoosePhysics physics = callback.getPhysics();
-        PetConfigFile ca = callback.getConfig();
-
-        float durationMultiplier = callback.isPetModeEnabled() ?
-            PetPersonality.get().getWanderDurationMultiplier() : 1f;
-
-        if (Time.time - taskWanderInfo.wanderingStartTime >
-            taskWanderInfo.wanderingDuration * durationMultiplier) {
+        if (Time.time > stroll.endsAt) {
             chooseNextTask();
             return;
         }
 
-        // Express while wandering (every 2-5 seconds)
+        // Expresarse mientras pasea (cada 2-5 segundos)
         if (Time.time - lastWanderExpressionTime > nextWanderExpressionInterval) {
             lastWanderExpressionTime = Time.time;
             nextWanderExpressionInterval = MathUtil.randomRange(2f, 5f);
             doWanderExpression();
         }
 
-        if (taskWanderInfo.pauseStartTime > 0f) {
-            if (Time.time - taskWanderInfo.pauseStartTime > taskWanderInfo.pauseDuration) {
-                taskWanderInfo.pauseStartTime = -1f;
-                // Velocidad máxima del tier, no la instantánea: tras la pausa esa es 0.
-                float dist = GooseTasks.WanderTask.getRandomWalkTime() * physics.getMaxSpeed();
-
-                // Occasionally visit favorite spots
-                if (memory.favoriteSpots.size() > 0 && Math.random() < 0.3f) {
-                    int idx = (int)(Math.random() * memory.favoriteSpots.size());
-                    physics.setTargetPos(memory.favoriteSpots.get(idx));
-                } else {
-                    physics.setTargetPos(new Vec2(
-                        MathUtil.randomRange(50f, (float) callback.getScreenWidth() - 50f),
-                        MathUtil.randomRange(50f, (float) callback.getScreenHeight() - 50f)
-                    ));
-                }
-
-                if (Vec2.dist(physics.getPosition(), physics.getTargetPos()) > dist) {
-                    physics.setTargetPos(Vec2.add(
-                        physics.getPosition(),
-                        Vec2.mul(
-                            Vec2.normalize(Vec2.sub(
-                                physics.getTargetPos(), physics.getPosition())),
-                            dist
-                        )
-                    ));
-                }
-
-                // Sometimes change speed or direction suddenly
-                if (Math.random() < 0.15f) {
-                    physics.setSpeed(Math.random() < 0.5f ?
-                        GooseTasks.SpeedTier.Run : GooseTasks.SpeedTier.Walk);
-                }
-            } else {
+        if (stroll.pauseUntil >= 0) {
+            if (Time.time < stroll.pauseUntil) {
                 physics.setVelocity(Vec2.ZERO);
-
-                // Do something while paused
-                if (Math.random() < 0.02f) {
-                    doPauseAction();
-                }
+                if (Math.random() < 0.02f) doPauseAction();
+                return;
             }
+            stroll.pauseUntil = -1;
+            startStrollLeg(physics);
+            return;
+        }
+
+        if (Vec2.dist(physics.getPosition(), physics.getTargetPos())
+                < GooseTasks.Stroll.ARRIVED_DISTANCE) {
+            stroll.pauseUntil = Time.time + GooseTasks.Stroll.pauseSeconds();
+            wanderActionCount++;
+        }
+    }
+
+    /** Elige el próximo destino del paseo: un lugar favorito o un punto al azar, no muy lejos. */
+    private void startStrollLeg(GoosePhysics physics) {
+        Vec2 target;
+        if (!memory.favoriteSpots.isEmpty() && Math.random() < 0.3f) {
+            target = memory.favoriteSpots.get((int) (Math.random() * memory.favoriteSpots.size()));
         } else {
-            if (Vec2.dist(physics.getPosition(), physics.getTargetPos()) < 20f) {
-                taskWanderInfo.pauseStartTime = Time.time;
-                taskWanderInfo.pauseDuration = GooseTasks.WanderTask.getRandomPauseDuration();
-                wanderActionCount++;
-
-                // Express happiness after reaching destination
-                if (wanderActionCount % 3 == 0) {
-                    callback.getTouchHandler().showEmoji(":)");
-                }
-            }
+            float margin = STROLL_SCREEN_MARGIN;
+            target = new Vec2(
+                MathUtil.randomRange(margin, callback.getScreenWidth() - margin),
+                MathUtil.randomRange(margin, callback.getScreenHeight() - margin));
+        }
+        float reach = GooseTasks.Stroll.legSeconds() * physics.getMaxSpeed();
+        Vec2 toTarget = Vec2.sub(target, physics.getPosition());
+        if (Vec2.length(toTarget) > reach) {
+            target = Vec2.add(physics.getPosition(), Vec2.mul(Vec2.normalize(toTarget), reach));
+        }
+        physics.setTargetPos(target);
+        if (Math.random() < 0.15f) {
+            physics.setSpeed(Math.random() < 0.5f ? GooseTasks.SpeedTier.Run : GooseTasks.SpeedTier.Walk);
         }
     }
 
@@ -1208,60 +1178,30 @@ public class GooseAI {
         }
     }
 
-    private void runNabMouse() {
-        // No implementado en Android: volver a pasear en vez de quedar trabado.
-        setTask(GooseTasks.GooseTask.Wander, false);
-    }
 
-    private void runCollectWindow() {
+
+    private void runFetchNote() {
         GoosePhysics physics = callback.getPhysics();
-        int screenWidth = callback.getScreenWidth();
-        int screenHeight = callback.getScreenHeight();
-
-        switch (taskCollectWindowInfo.stage) {
-            case WalkingOffscreen:
+        switch (fetchNote.step) {
+            case TO_EDGE:
                 if (hasReachedTargetOrTimedOut(physics)) {
-                    taskCollectWindowInfo.secsToWait = GooseTasks.CollectWindowTask.getWaitTime();
-                    taskCollectWindowInfo.waitStartTime = Time.time;
-                    taskCollectWindowInfo.stage = GooseTasks.CollectWindowTask.Stage.WaitingToBringWindowBack;
+                    fetchNote.awayUntil = Time.time + GooseTasks.FetchNote.awaySeconds();
+                    fetchNote.step = GooseTasks.FetchNote.Step.AWAY;
                 }
                 break;
-            case WaitingToBringWindowBack:
-                if (Time.time - taskCollectWindowInfo.waitStartTime > taskCollectWindowInfo.secsToWait) {
-                    switch (taskCollectWindowInfo.screenDirection) {
-                        case Left:
-                            physics.setTargetPos(new Vec2(
-                                physics.getTargetPos().x,
-                                MathUtil.lerp(physics.getPosition().y, (float)(screenHeight / 2),
-                                    MathUtil.randomRange(0.2f, 0.3f))
-                            ));
-                            break;
-                        case Top:
-                            physics.setTargetPos(new Vec2(
-                                MathUtil.lerp(physics.getPosition().x, (float)(screenWidth / 2),
-                                    MathUtil.randomRange(0.2f, 0.3f)),
-                                physics.getTargetPos().y
-                            ));
-                            break;
-                        case Right:
-                            physics.setTargetPos(new Vec2(
-                                physics.getTargetPos().x,
-                                MathUtil.lerp(physics.getPosition().y, (float)(screenHeight / 2),
-                                    MathUtil.randomRange(0.2f, 0.3f))
-                            ));
-                            break;
-                    }
+            case AWAY:
+                if (Time.time >= fetchNote.awayUntil) {
+                    physics.setTargetPos(returnPointFrom(fetchNote.edge, physics.getPosition()));
                     stageStartTime = Time.time;
-                    taskCollectWindowInfo.stage = GooseTasks.CollectWindowTask.Stage.DraggingWindowBack;
-                    pickUpNote(physics, taskCollectWindowInfo.screenDirection);
+                    fetchNote.step = GooseTasks.FetchNote.Step.BRING_BACK;
+                    pickUpNote(physics, fetchNote.edge);
                 }
                 break;
-            case DraggingWindowBack:
+            case BRING_BACK:
                 if (hasReachedTargetOrTimedOut(physics)) {
-                    physics.setTargetPos(Vec2.add(
-                        physics.getPosition(),
-                        Vec2.mul(Vec2.fromDegrees(physics.getDirection() + 180f), 40f)
-                    ));
+                    // Suelta la nota y se aleja unos pasos para que se vea
+                    physics.setTargetPos(Vec2.add(physics.getPosition(),
+                        Vec2.mul(Vec2.fromDegrees(physics.getDirection() + 180f), NOTE_STEP_BACK)));
                     setTask(GooseTasks.GooseTask.Wander, false);
                 } else {
                     overrideExtendNeck = true;
@@ -1270,47 +1210,43 @@ public class GooseAI {
         }
     }
 
-    private void runTrackMud() {
-        GoosePhysics physics = callback.getPhysics();
-        int screenWidth = callback.getScreenWidth();
-        int screenHeight = callback.getScreenHeight();
+    /** Punto hacia adentro de la pantalla para volver desde un borde. */
+    private Vec2 returnPointFrom(GooseTasks.Edge edge, Vec2 from) {
+        float width = callback.getScreenWidth();
+        float height = callback.getScreenHeight();
+        float depth = MathUtil.randomRange(0.2f, 0.35f);
+        switch (edge) {
+            case TOP:
+                return new Vec2(from.x, height * depth);
+            case RIGHT:
+                return new Vec2(width * (1f - depth), MathUtil.lerp(from.y, height / 2f, 0.3f));
+            default:
+                return new Vec2(width * depth, MathUtil.lerp(from.y, height / 2f, 0.3f));
+        }
+    }
 
-        switch (taskTrackMudInfo.stage) {
-            case DecideToRun:
-                setTargetOffscreen(false);
-                physics.setSpeed(GooseTasks.SpeedTier.Run);
-                taskTrackMudInfo.stage = GooseTasks.TrackMudTask.Stage.RunningOffscreen;
-                break;
-            case RunningOffscreen:
+    private void runMudDash() {
+        GoosePhysics physics = callback.getPhysics();
+        switch (mudDash.step) {
+            case RUN_OUT:
                 if (hasReachedTargetOrTimedOut(physics)) {
-                    physics.setTargetPos(new Vec2(
-                        MathUtil.randomRange(0f, (float) screenWidth),
-                        MathUtil.randomRange(0f, (float) screenHeight)
-                    ));
-                    taskTrackMudInfo.nextDirChangeTime = Time.time +
-                        GooseTasks.TrackMudTask.getDirChangeInterval();
-                    taskTrackMudInfo.timeToStopRunning = Time.time + 2f;
-                    physics.setTrackMudEndTime(Time.time + 15f);
+                    physics.setMuddyFeetUntil(Time.time + GooseTasks.MudDash.MUDDY_FEET_SECONDS);
                     PetNeeds.get().soil(PetNeeds.MUD_SOIL_AMOUNT);
-                    taskTrackMudInfo.stage = GooseTasks.TrackMudTask.Stage.RunningWandering;
                     Sound.mud();
+                    mudDash.endsAt = Time.time + GooseTasks.MudDash.ZIGZAG_SECONDS;
+                    mudDash.nextTurnAt = 0;
+                    mudDash.step = GooseTasks.MudDash.Step.ZIGZAG;
                 }
                 break;
-            case RunningWandering:
-                if (Vec2.dist(physics.getPosition(), physics.getTargetPos()) < 5f ||
-                    Time.time > taskTrackMudInfo.nextDirChangeTime) {
+            case ZIGZAG:
+                if (Time.time >= mudDash.nextTurnAt
+                        || Vec2.dist(physics.getPosition(), physics.getTargetPos()) < 5f) {
                     physics.setTargetPos(new Vec2(
-                        MathUtil.randomRange(0f, (float) screenWidth),
-                        MathUtil.randomRange(0f, (float) screenHeight)
-                    ));
-                    taskTrackMudInfo.nextDirChangeTime = Time.time +
-                        GooseTasks.TrackMudTask.getDirChangeInterval();
+                        MathUtil.randomRange(0f, callback.getScreenWidth()),
+                        MathUtil.randomRange(0f, callback.getScreenHeight())));
+                    mudDash.nextTurnAt = Time.time + GooseTasks.MudDash.TURN_SECONDS;
                 }
-                if (Time.time > taskTrackMudInfo.timeToStopRunning) {
-                    Vec2 newTarget = Vec2.add(physics.getPosition(), new Vec2(30f, 3f));
-                    newTarget.x = MathUtil.clamp(newTarget.x, 55f, (float)(screenWidth - 55));
-                    newTarget.y = MathUtil.clamp(newTarget.y, 80f, (float)(screenHeight - 80));
-                    physics.setTargetPos(newTarget);
+                if (Time.time > mudDash.endsAt) {
                     setTask(GooseTasks.GooseTask.Wander, false);
                 }
                 break;
@@ -1609,6 +1545,8 @@ public class GooseAI {
     private static final float OFFSCREEN_EDGE_INSET = 24f;
     private static final float EDGE_REACHED_DISTANCE = 12f;
     private static final float STAGE_TIMEOUT_SECONDS = 12f;
+    private static final float STROLL_SCREEN_MARGIN = 50f;
+    private static final float NOTE_STEP_BACK = 40f;
     private double stageStartTime = 0f;
 
     private boolean hasReachedTargetOrTimedOut(GoosePhysics physics) {
@@ -1616,56 +1554,37 @@ public class GooseAI {
             || Time.time - stageStartTime > STAGE_TIMEOUT_SECONDS;
     }
 
-    private GooseTasks.CollectWindowTask.ScreenDirection setTargetOffscreen(boolean canExitTop) {
+    /** Manda al ganso al borde más cercano (izquierdo, derecho o, si se permite, el de arriba). */
+    private GooseTasks.Edge headToNearestEdge(boolean allowTop) {
         stageStartTime = Time.time;
         GoosePhysics physics = callback.getPhysics();
-        int screenWidth = callback.getScreenWidth();
-        int screenHeight = callback.getScreenHeight();
+        float width = callback.getScreenWidth();
+        float height = callback.getScreenHeight();
+        Vec2 pos = physics.getPosition();
 
-        int distToLeft = (int) physics.getPosition().x;
-        GooseTasks.CollectWindowTask.ScreenDirection result =
-            GooseTasks.CollectWindowTask.ScreenDirection.Left;
-        physics.setTargetPos(new Vec2(OFFSCREEN_EDGE_INSET,
-            MathUtil.lerp(physics.getPosition().y, (float)(screenHeight / 2), 0.4f)));
+        float toLeft = pos.x;
+        float toRight = width - pos.x;
+        GooseTasks.Edge edge = toLeft <= toRight ? GooseTasks.Edge.LEFT : GooseTasks.Edge.RIGHT;
+        float nearest = Math.min(toLeft, toRight);
+        if (allowTop && pos.y < nearest) edge = GooseTasks.Edge.TOP;
 
-        if (distToLeft > screenWidth / 2) {
-            distToLeft = screenWidth - (int) physics.getPosition().x;
-            result = GooseTasks.CollectWindowTask.ScreenDirection.Right;
-            physics.setTargetPos(new Vec2((float) screenWidth - OFFSCREEN_EDGE_INSET,
-                MathUtil.lerp(physics.getPosition().y, (float)(screenHeight / 2), 0.4f)));
+        float midY = MathUtil.lerp(pos.y, height / 2f, 0.4f);
+        switch (edge) {
+            case TOP:
+                physics.setTargetPos(new Vec2(MathUtil.lerp(pos.x, width / 2f, 0.4f), OFFSCREEN_EDGE_INSET));
+                break;
+            case RIGHT:
+                physics.setTargetPos(new Vec2(width - OFFSCREEN_EDGE_INSET, midY));
+                break;
+            default:
+                physics.setTargetPos(new Vec2(OFFSCREEN_EDGE_INSET, midY));
+                break;
         }
-
-        if (canExitTop && (float) distToLeft > physics.getPosition().y) {
-            result = GooseTasks.CollectWindowTask.ScreenDirection.Top;
-            physics.setTargetPos(new Vec2(
-                MathUtil.lerp(physics.getPosition().x, (float)(screenWidth / 2), 0.4f),
-                OFFSCREEN_EDGE_INSET));
-        }
-
-        return result;
+        return edge;
     }
 
     private void chooseNextTask() {
-        PetConfigFile ca = callback.getConfig();
-
-        if (!string2boolean(ca.get("AttackRandomly")) &&
-            Time.time < Float.parseFloat(ca.get("FirstWanderTimeSeconds")) + 1f) {
-            setTask(GooseTasks.GooseTask.TrackMud, true);
-            return;
-        }
-
-
-        // NabMouse no está implementado en Android: nunca se elige.
-        GooseTasks.GooseTask task = gooseTaskWeightedList[taskPicker.next()];
-        for (int i = 0; i < gooseTaskWeightedList.length
-                && task == GooseTasks.GooseTask.NabMouse; i++) {
-            task = gooseTaskWeightedList[taskPicker.next()];
-        }
-        if (task == GooseTasks.GooseTask.NabMouse) {
-            task = GooseTasks.GooseTask.Wander;
-        }
-
-        setTask(task, true);
+        setTask(ERRANDS[errandPicker.next()], true);
     }
 
     /**
@@ -1674,30 +1593,16 @@ public class GooseAI {
      * termina en un frame.
      */
     /** La nota viene del borde por el que salió el ganso. */
-    private static void pickUpNote(GoosePhysics physics,
-                                   GooseTasks.CollectWindowTask.ScreenDirection direction) {
-        float dirX = 0f;
-        float dirY = 0f;
-        switch (direction) {
-            case Left:
-                dirX = -1f;
-                break;
-            case Right:
-                dirX = 1f;
-                break;
-            case Top:
-                dirY = -1f;
-                break;
-            default:
-                break;
-        }
+    private static void pickUpNote(GoosePhysics physics, GooseTasks.Edge edge) {
+        float dirX = edge == GooseTasks.Edge.LEFT ? -1f : (edge == GooseTasks.Edge.RIGHT ? 1f : 0f);
+        float dirY = edge == GooseTasks.Edge.TOP ? -1f : 0f;
         GooseNotes.pickUp(dirX, dirY, physics.getPosition());
     }
 
     private void resetTaskTimers(GooseTasks.GooseTask task) {
         if (task == null) return;
         switch (task) {
-            case CollectWindow_DONOTSET:
+            case FetchNote:
                 // Terminó o la interrumpieron: la nota queda donde está
                 TheGoose.onNoteTaskEnded();
                 break;
@@ -1742,35 +1647,24 @@ public class GooseAI {
 
         currentTask = task;
         GoosePhysics physics = callback.getPhysics();
-        PetConfigFile ca = callback.getConfig();
 
         switch (task) {
             case Wander:
                 physics.setSpeed(GooseTasks.SpeedTier.Walk);
-                taskWanderInfo = new GooseTasks.WanderTask();
-                taskWanderInfo.pauseStartTime = -1f;
-                taskWanderInfo.wanderingStartTime = Time.time;
-                taskWanderInfo.wanderingDuration = GooseTasks.WanderTask.getRandomWanderDuration(
-                    Float.parseFloat(ca.get("FirstWanderTimeSeconds")),
-                    Float.parseFloat(ca.get("MinWanderingTimeSeconds")),
-                    Float.parseFloat(ca.get("MaxWanderingTimeSeconds"))
-                );
+                float scale = callback.isPetModeEnabled()
+                    ? PetPersonality.get().getWanderDurationMultiplier() : 1f;
+                stroll = new GooseTasks.Stroll(!hasStrolled, scale);
+                hasStrolled = true;
                 break;
-            case NabMouse:
-                taskNabMouseInfo = new GooseTasks.NabMouseTask();
-                taskNabMouseInfo.chaseStartTime = Time.time;
-                break;
-            case CollectWindow_Meme:
-            case CollectWindow_Notepad:
-                taskCollectWindowInfo = new GooseTasks.CollectWindowTask();
-                setTask(GooseTasks.GooseTask.CollectWindow_DONOTSET, false);
-                break;
-            case CollectWindow_DONOTSET:
-                taskCollectWindowInfo.screenDirection = setTargetOffscreen(false);
+            case FetchNote:
+                fetchNote = new GooseTasks.FetchNote();
+                fetchNote.edge = headToNearestEdge(false);
                 TheGoose.onNoteTaskStarted();
                 break;
-            case TrackMud:
-                taskTrackMudInfo = new GooseTasks.TrackMudTask();
+            case MudDash:
+                mudDash = new GooseTasks.MudDash();
+                headToNearestEdge(true);
+                physics.setSpeed(GooseTasks.SpeedTier.Run);
                 break;
             default:
                 break;

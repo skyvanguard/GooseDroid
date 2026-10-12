@@ -1,33 +1,19 @@
 package com.skyvanguard.goozy.engine;
 
-import com.skyvanguard.goozy.core.*;
+import com.skyvanguard.goozy.core.MathUtil;
+import com.skyvanguard.goozy.core.Time;
 
-/**
- * Task state classes for goose behaviors.
- */
-public class GooseTasks {
+/** Tareas del ganso y el estado de las que duran varios pasos. */
+public final class GooseTasks {
 
-    /**
-     * Speed tiers for movement.
-     */
-    public enum SpeedTier {
-        Walk,
-        Run,
-        Charge
-    }
+    public enum SpeedTier { Walk, Run, Charge }
 
-    /**
-     * All possible goose tasks/states.
-     */
     public enum GooseTask {
         Wander,
-        NabMouse,
-        CollectWindow_Meme,
-        CollectWindow_Notepad,
-        CollectWindow_DONOTSET,
-        TrackMud,
-        Count,
-        // Pet states
+        /** Sale por un borde y vuelve arrastrando una nota. */
+        FetchNote,
+        /** Se embarra y corre en zigzag dejando huellas. */
+        MudDash,
         Sleeping,
         Eating,
         Playing,
@@ -38,106 +24,67 @@ public class GooseTasks {
         BeingDragged
     }
 
-    /**
-     * Wander task state.
-     */
-    public static class WanderTask {
-        public final float MinPauseTime = 1f;
-        public final float MaxPauseTime = 2f;
-        public final float GoodEnoughDistance = 20f;
+    /** Borde por el que sale el ganso a buscar una nota. */
+    public enum Edge { LEFT, TOP, RIGHT }
 
-        public double wanderingStartTime;
-        public float wanderingDuration;
-        public double pauseStartTime;
-        public float pauseDuration;
+    private GooseTasks() {
+    }
 
-        public static float getRandomPauseDuration() {
-            return 1f + (float) MathUtil.RNG.nextDouble();
+    /** Paseo: tramos cortos hacia puntos al azar, con paradas a mirar alrededor. */
+    static final class Stroll {
+        static final float FIRST_SECONDS = 12f;
+        static final float MIN_SECONDS = 18f;
+        static final float MAX_SECONDS = 40f;
+        static final float ARRIVED_DISTANCE = 20f;
+        private static final float MIN_LEG_SECONDS = 1.2f;
+        private static final float MAX_LEG_SECONDS = 4.5f;
+        private static final float MIN_PAUSE_SECONDS = 0.8f;
+        private static final float MAX_PAUSE_SECONDS = 2.4f;
+
+        final double endsAt;
+        /** Momento en que termina la parada actual; negativo = caminando. */
+        double pauseUntil = -1;
+
+        Stroll(boolean isFirst, float durationScale) {
+            float seconds = isFirst ? FIRST_SECONDS : MathUtil.randomRange(MIN_SECONDS, MAX_SECONDS);
+            endsAt = Time.time + seconds * durationScale;
         }
 
-        public static float getRandomWanderDuration(float firstWanderTime, float minTime, float maxTime) {
-            if (Time.time < 1f) {
-                return firstWanderTime;
-            }
-            return MathUtil.randomRange(minTime, maxTime);
+        static float legSeconds() {
+            return MathUtil.randomRange(MIN_LEG_SECONDS, MAX_LEG_SECONDS);
         }
 
-        public static float getRandomWalkTime() {
-            return MathUtil.randomRange(1f, 6f);
+        static float pauseSeconds() {
+            return MathUtil.randomRange(MIN_PAUSE_SECONDS, MAX_PAUSE_SECONDS);
         }
     }
 
-    /**
-     * Nab mouse task state.
-     */
-    public static class NabMouseTask {
-        public Stage currentStage;
-        public Vec2 dragToPoint;
-        public double grabbedOriginalTime;
-        public double chaseStartTime;
-        public Vec2 originalVectorToMouse;
+    /** Buscar una nota: ir a un borde, desaparecer un rato y volver con ella. */
+    static final class FetchNote {
+        enum Step { TO_EDGE, AWAY, BRING_BACK }
 
-        public final float MouseGrabDistance = 15f;
-        public final float MouseSuccTime = 0.06f;
-        public final float MouseDropDistance = 30f;
-        public final float MinRunTime = 2f;
-        public final float MaxRunTime = 4f;
-        public final float GiveUpTime = 9f;
+        private static final float MIN_AWAY_SECONDS = 2f;
+        private static final float MAX_AWAY_SECONDS = 4f;
 
-        public static Vec2 StruggleRange = new Vec2(3f, 3f);
+        Step step = Step.TO_EDGE;
+        Edge edge = Edge.LEFT;
+        double awayUntil;
 
-        public enum Stage {
-            SeekingMouse,
-            DraggingMouseAway,
-            Decelerating
+        static float awaySeconds() {
+            return MathUtil.randomRange(MIN_AWAY_SECONDS, MAX_AWAY_SECONDS);
         }
     }
 
-    /**
-     * Collect window task state.
-     */
-    public static class CollectWindowTask {
-        public Stage stage = Stage.WalkingOffscreen;
-        public float secsToWait;
-        public double waitStartTime;
-        public ScreenDirection screenDirection;
-        public Vec2 windowOffsetToBeak;
+    /** Correr embarrado: salir disparado por un borde y volver en zigzag. */
+    static final class MudDash {
+        enum Step { RUN_OUT, ZIGZAG }
 
-        public static float getWaitTime() {
-            return MathUtil.randomRange(2f, 3.5f);
-        }
+        static final float ZIGZAG_SECONDS = 2.5f;
+        static final float TURN_SECONDS = 0.6f;
+        static final float MUDDY_FEET_SECONDS = 15f;
 
-        public enum Stage {
-            WalkingOffscreen,
-            WaitingToBringWindowBack,
-            DraggingWindowBack
-        }
-
-        public enum ScreenDirection {
-            Left,
-            Top,
-            Right
-        }
+        Step step = Step.RUN_OUT;
+        double nextTurnAt;
+        double endsAt;
     }
-
-    /**
-     * Track mud task state.
-     */
-    public static class TrackMudTask {
-        public final float DurationToRunAmok = 2f;
-        public double nextDirChangeTime;
-        public double timeToStopRunning;
-        public Stage stage = Stage.DecideToRun;
-
-        public static float getDirChangeInterval() {
-            return 100f;
-        }
-
-        public enum Stage {
-            DecideToRun,
-            RunningOffscreen,
-            RunningWandering
-        }
-    }
-
 }

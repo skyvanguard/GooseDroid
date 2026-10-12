@@ -14,7 +14,7 @@ public class GooseModelTest {
 
     private static GooseModel standingAt(float x, float y, float heading) {
         GooseModel model = new GooseModel();
-        for (int i = 0; i < 120; i++) model.update(DT, x, y, heading, 0f, 0f, 0f);
+        for (int i = 0; i < 120; i++) model.update(DT, x, y, heading, 0f, 0f, 0f, false);
         return model;
     }
 
@@ -56,7 +56,7 @@ public class GooseModelTest {
         float y = 800f;
         for (int i = 0; i < 120; i++) {
             y -= 100f * DT;
-            away.update(DT, 300f, y, 270f, 0f, 0f, 0f);
+            away.update(DT, 300f, y, 270f, 0f, 0f, 0f, false);
         }
         assertEquals(0f, Math.max(away.eyeSize[0], away.eyeSize[1]), 0.001f);
         GooseModel toward = standingAt(300f, 300f, 90f);
@@ -79,7 +79,7 @@ public class GooseModelTest {
         float x = 100f;
         for (int i = 0; i < 180; i++) {
             x += 80f * DT;
-            m.update(DT, x, 400f, 0f, 0f, 0f, 0f);
+            m.update(DT, x, 400f, 0f, 0f, 0f, 0f, false);
             total += m.pollSteps(steps);
         }
         assertTrue("caminar 3 s deja pisadas: " + total, total >= 4);
@@ -104,7 +104,7 @@ public class GooseModelTest {
         GooseModel awake = standingAt(300f, 300f, 0f);
         GooseModel asleep = new GooseModel();
         asleep.pose = Pose.SLEEPING;
-        for (int i = 0; i < 240; i++) asleep.update(DT, 300f, 300f, 0f, 0f, 0f, 0f);
+        for (int i = 0; i < 240; i++) asleep.update(DT, 300f, 300f, 0f, 0f, 0f, 0f, false);
         assertTrue(asleep.headY > awake.headY);
         assertTrue("mira hacia atrás", asleep.beakTipX < asleep.beakBaseX);
         assertEquals(1f, asleep.blink, 0.001f);
@@ -114,9 +114,42 @@ public class GooseModelTest {
     public void eggHasNoBodyBallsAndIsTouchable() {
         GooseModel egg = new GooseModel();
         egg.species = Species.EGG;
-        egg.update(DT, 200f, 200f, 0f, 0f, 0f, 0f);
+        egg.update(DT, 200f, 200f, 0f, 0f, 0f, 0f, false);
         assertEquals(0, egg.ballCount);
         assertEquals(Zone.BODY, egg.zoneAt(egg.eggX, egg.eggY));
+    }
+
+    @Test
+    public void beingCarriedNeitherWalksNorLeavesSteps() {
+        GooseModel m = new GooseModel();
+        float[] steps = new float[4];
+        int total = 0;
+        float x = 100f;
+        for (int i = 0; i < 180; i++) {
+            x += 80f * DT;
+            m.update(DT, x, 400f, 0f, 0f, 0f, 0f, true);
+            total += m.pollSteps(steps);
+        }
+        assertEquals(0, total);
+    }
+
+    @Test
+    public void eyesOpenRightAfterWakingUp() {
+        GooseModel m = new GooseModel();
+        m.pose = Pose.SLEEPING;
+        for (int i = 0; i < 240; i++) m.update(DT, 300f, 300f, 0f, 0f, 0f, 0f, false);
+        assertEquals(1f, m.blink, 0.001f);
+        m.pose = Pose.NORMAL;
+        m.update(DT, 300f, 300f, 0f, 0f, 0f, 0f, false);
+        assertTrue("no debería seguir con los ojos cerrados", m.blink < 1f);
+    }
+
+    @Test
+    public void sideViewShowsOnlyTheNearWing() {
+        GooseModel m = standingAt(300f, 300f, 0f);
+        boolean left = m.wingVisibility[0] > 0.5f;
+        boolean right = m.wingVisibility[1] > 0.5f;
+        assertTrue(left ^ right);
     }
 
     @Test

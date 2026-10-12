@@ -170,6 +170,7 @@ public final class GooseBodyPainter {
             radius = Math.max(radius, (float) Math.hypot(m.ballX[i] - cx, m.ballY[i] - cy) + m.ballR[i]);
         }
         int h = convexHull(n);
+        if (h < 3) return;
         path.rewind();
         path.moveTo((hullX[h - 1] + hullX[0]) * 0.5f, (hullY[h - 1] + hullY[0]) * 0.5f);
         for (int k = 0; k < h; k++) {
@@ -244,7 +245,9 @@ public final class GooseBodyPainter {
     private void drawWings(Canvas canvas, GooseModel m, float ow) {
         int wingColor = blend(bodyColor, outlineColor, 0.12f);
         for (int i = 0; i < 2; i++) {
-            if (m.wingDepth[i] <= -0.1f) continue;
+            float visibility = m.wingVisibility[i];
+            if (visibility <= 0.01f) continue;
+            int alpha = Math.round(visibility * 255f);
             float lift = m.flap * m.wingWidth * 0.5f;
             matrix.setScale(m.wingLength, m.wingWidth * (1f + m.flap * 0.5f));
             matrix.postRotate(m.wingAngleDeg);
@@ -252,13 +255,17 @@ public final class GooseBodyPainter {
             unitWing.transform(matrix, scratch);
             fill.setShader(null);
             fill.setColor(wingColor);
+            fill.setAlpha(alpha);
             canvas.drawPath(scratch, fill);
             stroke.setColor(outlineColor);
+            stroke.setAlpha(alpha);
             stroke.setStrokeWidth(ow * 0.85f);
             canvas.drawPath(scratch, stroke);
             unitFeathers.transform(matrix, scratch);
             stroke.setStrokeWidth(ow * 0.5f);
             canvas.drawPath(scratch, stroke);
+            fill.setAlpha(255);
+            stroke.setAlpha(255);
         }
     }
 
@@ -519,8 +526,8 @@ public final class GooseBodyPainter {
      */
     private void sortGroups(GooseModel m) {
         float neckDepth = m.groupDepth[GooseModel.GROUP_NECK];
-        // Sin cuello (pollito) la cabeza va encima del cuerpo: siempre se ve
-        boolean headBehindBody = neckDepth != Float.NEGATIVE_INFINITY
+        // Sin cuello (pollito) o dormida sobre el lomo, la cabeza va encima del cuerpo
+        boolean headBehindBody = neckDepth != Float.NEGATIVE_INFINITY && !m.isHeadTucked()
                 && neckDepth < m.groupDepth[GooseModel.GROUP_BODY];
         int i = 0;
         if (!headBehindBody) groupOrder[i++] = GooseModel.GROUP_BODY;
@@ -535,6 +542,7 @@ public final class GooseBodyPainter {
 
     /** Luz desde arriba a la izquierda, compartida por todo el grupo para que no se noten uniones. */
     private void applyShading(float cx, float cy, float radius, int color) {
+        color = quantize(color);
         if (bodyShader == null || shaderColor != color) {
             bodyShader = new RadialGradient(0f, 0f, 1f,
                     new int[] {blend(color, Color.WHITE, 0.35f), color, blend(color, INK, 0.16f)},
@@ -569,6 +577,11 @@ public final class GooseBodyPainter {
         unitFeathers.quadTo(-0.02f, 0.06f, 0.25f, -0.02f);
         unitFeathers.moveTo(-0.3f, 0.12f);
         unitFeathers.quadTo(0f, 0.24f, 0.22f, 0.16f);
+    }
+
+    /** Redondea el color a pasos de 16 para no recrear el sombreado en cada frame (modo disco). */
+    private static int quantize(int color) {
+        return color & 0xFFF0F0F0;
     }
 
     static int blend(int from, int to, float t) {

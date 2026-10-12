@@ -372,8 +372,10 @@ public final class BrainController {
                 return "festejando";
             case "Seeking":
                 return "buscando a tu humano";
-            case "TrackMud":
+            case "MudDash":
                 return "dejando huellas de barro";
+            case "FetchNote":
+                return "yendo a buscar una nota para tu humano";
             case "BeingPetted":
                 return "recibiendo caricias";
             case "BeingDragged":
@@ -472,7 +474,7 @@ public final class BrainController {
                 TheGoose.requestTask(GooseTasks.GooseTask.Sleeping);
                 break;
             case TRACK_MUD:
-                TheGoose.requestTask(GooseTasks.GooseTask.TrackMud);
+                TheGoose.requestTask(GooseTasks.GooseTask.MudDash);
                 break;
             case SEEK_ATTENTION:
                 TheGoose.requestTask(GooseTasks.GooseTask.Seeking);

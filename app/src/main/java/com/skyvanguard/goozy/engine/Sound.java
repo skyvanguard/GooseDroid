@@ -96,6 +96,11 @@ public final class Sound {
         play(Cue.PAT, 0.7f, randomRate(0.85f, 1.2f));
     }
 
+    /** Pisada: la palmada muy bajita y grave. */
+    public static void step() {
+        play(Cue.PAT, 0.12f, randomRate(0.7f, 0.85f));
+    }
+
     public static void mud() {
         play(Cue.MUD, 0.6f, randomRate(0.9f, 1.1f));
     }

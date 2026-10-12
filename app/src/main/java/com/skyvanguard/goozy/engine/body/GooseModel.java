@@ -34,6 +34,8 @@ public final class GooseModel {
     private static final float TUCKED_HEAD_YAW = 165f;
     private static final float BLINK_SECONDS = 0.13f;
     private static final float TWO_PI = (float) (Math.PI * 2);
+    private static final float WING_HIDE_DEPTH = 0.05f;
+    private static final float WING_FADE_DEPTH = 0.35f;
 
     // ---- Entrada ----
     public Species species = Species.GOOSE;
@@ -73,6 +75,8 @@ public final class GooseModel {
     public final float[] wingY = new float[2];
     /** Profundidad del ala de cada lado; negativa = queda oculta detrás del cuerpo. */
     public final float[] wingDepth = new float[2];
+    /** 0 = ala oculta, 1 = ala del todo visible. */
+    public final float[] wingVisibility = new float[2];
     public float wingAngleDeg, wingLength, wingWidth, flap;
 
     /** Cuello como curva: inicio, control y fin (mundo) y medio grosor. */
@@ -94,12 +98,15 @@ public final class GooseModel {
     private float lookYaw, lookTarget, nextLookAt;
     private float nextBlinkAt = 2f, blinkStart = -1f;
     private boolean hasPrevious;
+    private boolean carried;
+    /** false hasta el primer update: antes no hay geometría válida. */
+    public boolean hasLayout;
     private float prevGroundX, prevGroundY;
     private final float[] prevSwing = new float[2];
     private final boolean[] stepPending = new boolean[2];
     private final float[] stepX = new float[2];
     private final float[] stepY = new float[2];
-    private float seed = 0.37f;
+    private int seed = 0x2f6b1a3d;
 
     // Puntos temporales en coordenadas de modelo
     private float bodyH, sway, hf, hs, hh, headYaw;
@@ -117,7 +124,8 @@ public final class GooseModel {
      * @param talk       0..1, cuánto abre el pico
      */
     public void update(float dt, float x, float y, float headingDeg, float jump,
-                       float neckExtend, float talk) {
+                       float neckExtend, float talk, boolean carried) {
+        this.carried = carried;
         time += dt;
         groundX = x;
         groundY = y;
@@ -135,6 +143,7 @@ public final class GooseModel {
         } else {
             layoutBody(jump / scale);
         }
+        hasLayout = true;
     }
 
     // ============== Postura ==============
@@ -168,6 +177,11 @@ public final class GooseModel {
         beakOpen = approach(beakOpen, talk, dt, 0.05f);
     }
 
+    /** true mientras la cabeza descansa sobre el lomo (dormido). */
+    public boolean isHeadTucked() {
+        return tuck > 0.5f;
+    }
+
     /** Aletea un momento (festejo, susto, aterrizaje). */
     public void flapWings() {
         flapBoost = 1f;
@@ -188,8 +202,8 @@ public final class GooseModel {
 
         float speed = dt > 0f ? moved * scale / dt : 0f;
         float targetAmp = Math.min(1f, speed / RUN_SPEED * 2f);
-        // Un salto de posición (arrastre, teletransporte) no es caminar
-        if (moved > STRIDE * 2f) targetAmp = 0f;
+        // Ni un salto de posición (teletransporte) ni ir colgando de un dedo es caminar
+        if (moved > STRIDE * 2f || carried) targetAmp = 0f;
         gaitAmp = approach(gaitAmp, targetAmp, dt, 0.12f);
         if (moved <= STRIDE * 2f) {
             gaitPhase = (gaitPhase + moved / STRIDE * (float) Math.PI) % TWO_PI;
@@ -235,7 +249,12 @@ public final class GooseModel {
                 blink = 1f - Math.abs(p * 2f - 1f);
             }
         }
-        if (pose == Pose.SLEEPING || expression == Expression.SLEEPY && tuck > 0.5f) blink = 1f;
+        boolean asleep = pose == Pose.SLEEPING || expression == Expression.SLEEPY && tuck > 0.5f;
+        if (asleep) {
+            blink = 1f;
+        } else if (blinkStart < 0f) {
+            blink = 0f;
+        }
     }
 
     // ============== Geometría ==============
@@ -404,8 +423,9 @@ public final class GooseModel {
             float[] p = project(-0.2f * r, sway + side * r * 0.72f, bodyH + 0.18f * r + flap * 2.5f);
             wingX[i] = p[0];
             wingY[i] = p[1];
-            // Solo se ve el ala del costado que mira hacia quien mira
-            wingDepth[i] = viewDepth(0f, side, 0f) - 0.45f;
+            // El ala del costado lejano se va ocultando a medida que el ganso gira
+            wingDepth[i] = viewDepth(0f, side, 0f);
+            wingVisibility[i] = MathUtil.clamp((wingDepth[i] - WING_HIDE_DEPTH) / WING_FADE_DEPTH, 0f, 1f);
         }
     }
 
@@ -429,7 +449,7 @@ public final class GooseModel {
             legTopY[i] = p[1];
 
             // Pisada: el pie termina de bajar
-            if (gaitAmp > 0.15f && prevSwing[i] > 0f && swing <= 0f && jump < 0.5f) {
+            if (!carried && gaitAmp > 0.15f && prevSwing[i] > 0f && swing <= 0f && jump < 0.5f) {
                 p = project(f, s, 0f);
                 stepX[i] = p[0];
                 stepY[i] = p[1];
@@ -516,7 +536,7 @@ public final class GooseModel {
             return Zone.TAIL;
         }
         for (int i = 0; i < 2; i++) {
-            if (wingDepth[i] > -0.1f && dist(x, y, wingX[i], wingY[i]) < wingWidth) {
+            if (wingVisibility[i] > 0.3f && dist(x, y, wingX[i], wingY[i]) < wingWidth) {
                 return i == 0 ? Zone.WING_LEFT : Zone.WING_RIGHT;
             }
         }
@@ -562,9 +582,10 @@ public final class GooseModel {
         return gy * HEIGHT_FACTOR + h * GROUND_SQUASH;
     }
 
+    /** Azar propio (no comparte estado con el resto del juego): LCG de 31 bits. */
     private float nextRandom() {
-        seed = (seed * 9301f + 49297f) % 233280f;
-        return seed / 233280f;
+        seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+        return seed / (float) 0x7fffffff;
     }
 
     /** Acerca un valor a su objetivo con una constante de tiempo, sin depender de los fps. */

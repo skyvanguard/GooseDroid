@@ -81,85 +81,25 @@ public class GooseRenderer {
         ANGER           // Anger marks
     }
 
-    // ============== TRAIL SYSTEM ==============
-
-    /**
-     * Trail point for motion trails.
-     */
-    public static class TrailPoint {
-        public Vec2 position;
-        public double time;
-        public float alpha;
-
-        public TrailPoint(Vec2 pos, double time) {
-            this.position = new Vec2(pos.x, pos.y);
-            this.time = time;
-            this.alpha = 1f;
-        }
-    }
-
-    /**
-     * Cachea un BlurMaskFilter (inmutable) y lo recrea solo si cambia el radio.
-     */
-    private static final class BlurCache {
-        private float radius;
-        private BlurMaskFilter filter;
-
-        BlurMaskFilter get(float newRadius) {
-            if (filter == null || Float.compare(radius, newRadius) != 0) {
-                radius = newRadius;
-                filter = new BlurMaskFilter(newRadius, BlurMaskFilter.Blur.NORMAL);
-            }
-            return filter;
-        }
-    }
-
     // ============== CONSTANTS ==============
 
     private static final int MAX_PARTICLES = 100;
-    private static final int MAX_TRAIL_POINTS = 20;
-    private static final float TRAIL_POINT_INTERVAL = 0.05f;
-    private static final float TRAIL_FADE_TIME = 0.5f;
-    private static final float SPEED_LINE_THRESHOLD = 150f;
-    private static final float GLOW_PULSE_SPEED = 3f;
-
-    // Colores y posiciones constantes de gradientes (nunca se modifican)
-    private static final float[] GRADIENT_STOPS_40 = {0f, 0.4f, 1f};
     private static final float[] GRADIENT_STOPS_50 = {0f, 0.5f, 1f};
-    private static final float[] GRADIENT_STOPS_60 = {0f, 0.6f, 1f};
-    private static final float[] GRADIENT_STOPS_QUARTERS = {0f, 0.25f, 0.5f, 0.75f, 1f};
-    private static final int[] SHADOW_GRADIENT_COLORS = {0x44000000, 0x22000000, 0x00000000};
-    private static final int[] SCLERA_GRADIENT_COLORS = {0xFFF8F8F8, 0xFFFFFFFF, 0xFFFFFFF8};
-    private static final int[] IRIS_GRADIENT_COLORS = {0xFF5A5A5A, 0xFF3A3A3A, 0xFF2A2A2A};
-    private static final int[] SHINE_GRADIENT_COLORS = {0xDDFFFFFF, 0x88FFFFFF, 0x00FFFFFF};
-    private static final int[] SHINE2_GRADIENT_COLORS = {0x99FFFFFF, 0x00FFFFFF};
     private static final int[] BANNER_GRADIENT_COLORS = {0xFFFFD700, 0xFFFFA500, 0xFFFF8C00};
-
-    // ============== STATE ==============
-
-    private Paint shadowPen;
-    private Paint drawingPen;
-    private Paint particlePaint;
-    private Paint glowPaint;
-    private Paint trailPaint;
-    private Paint indicatorPaint;
-
-    private List<Particle> particles;
-    private List<TrailPoint> trailPoints;
-    private double lastTrailTime = 0;
-    private float glowPhase = 0;
-    private boolean showShadow = true;
-    private final GooseBodyPainter bodyPainter = new GooseBodyPainter();
-    private final Paint mudPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint sleepTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     /** Radio de una huella de barro en unidades de modelo. */
     private static final float FOOTPRINT_UNITS = 1.3f;
     private static final int CHICK_COLOR = 0xFFFFE680;
+    /** Las partículas, más chicas que el ganso para no taparlo. */
+    private static final float PARTICLE_SCALE = 0.65f;
 
-    // Glow state
-    private int currentGlowColor = 0;
-    private float glowIntensity = 0;
-    private float targetGlowIntensity = 0;
+    // ============== STATE ==============
+
+    private final Paint particlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint mudPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint sleepTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final GooseBodyPainter bodyPainter = new GooseBodyPainter();
+    private final List<Particle> particles = new ArrayList<>();
+    private boolean showShadow = true;
 
     // Particle spawn timers
     private float heartSpawnTimer = 0;
@@ -173,54 +113,8 @@ public class GooseRenderer {
     public int eyeColor = 0xFF000000;
     public int bodyColor = 0xFFFFFFFF;
 
-    // ============== CONSTRUCTOR ==============
-
-    public GooseRenderer() {
-        // Create shadow brush with pattern
-        Bitmap shadowBitmap = Bitmap.createBitmap(2, 2, Bitmap.Config.ARGB_8888);
-        shadowBitmap.setPixel(0, 0, Color.TRANSPARENT);
-        shadowBitmap.setPixel(1, 1, Color.TRANSPARENT);
-        shadowBitmap.setPixel(1, 0, Color.TRANSPARENT);
-        shadowBitmap.setPixel(0, 1, 0xFFA9A9A9);
-
-        shadowPen = new Paint();
-        shadowPen.setShader(new BitmapShader(shadowBitmap, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT));
-        shadowPen.setStrokeCap(Paint.Cap.ROUND);
-
-        // Create drawing pen
-        drawingPen = new Paint();
-        drawingPen.setColor(Color.WHITE);
-        drawingPen.setStrokeCap(Paint.Cap.ROUND);
-        drawingPen.setAntiAlias(true);
-
-        // Create particle paint
-        particlePaint = new Paint();
-        particlePaint.setAntiAlias(true);
-
-        // Create glow paint with blur
-        glowPaint = new Paint();
-        glowPaint.setAntiAlias(true);
-        glowPaint.setMaskFilter(new BlurMaskFilter(15f, BlurMaskFilter.Blur.NORMAL));
-
-        // Create trail paint
-        trailPaint = new Paint();
-        trailPaint.setAntiAlias(true);
-        trailPaint.setStrokeCap(Paint.Cap.ROUND);
-
-        // Create indicator paint
-        indicatorPaint = new Paint();
-        indicatorPaint.setAntiAlias(true);
-
-        // Initialize collections
-        particles = new ArrayList<>();
-        trailPoints = new ArrayList<>();
-    }
-
     public void setShowShadow(boolean show) {
         this.showShadow = show;
-        if (shadowPen != null) {
-            shadowPen.setAlpha(show ? 255 : 0);
-        }
     }
 
     // ============== MAIN RENDER ==============
@@ -264,7 +158,7 @@ public class GooseRenderer {
 
         // Partículas e indicador de sueño: sus medidas están pensadas a escala del ganso
         Vec2 position = physics.getPosition();
-        float drawScale = TheGoose.DrawScale;
+        float drawScale = TheGoose.DrawScale * PARTICLE_SCALE;
         canvas.save();
         canvas.translate(position.x, position.y);
         canvas.scale(drawScale, drawScale);
@@ -273,7 +167,12 @@ public class GooseRenderer {
         if (petModeEnabled) renderSleepIndicator(canvas, position, ai);
         canvas.restore();
 
-        if (petModeEnabled) renderThoughtBubble(canvas, position, worldWidth, worldHeight);
+        if (petModeEnabled) {
+            renderLabel(canvas, body, touchHandler);
+            float bodyTop = body != null && body.hasLayout ? body.minY : position.y - THOUGHT_GAP_ABOVE_GOOSE;
+            float bodyBottom = body != null && body.hasLayout ? body.maxY : position.y + THOUGHT_GAP_ABOVE_GOOSE;
+            renderThoughtBubble(canvas, position, bodyTop, bodyBottom, worldWidth, worldHeight);
+        }
         renderAchievementNotification(canvas, worldWidth, worldHeight);
     }
 
@@ -512,6 +411,46 @@ public class GooseRenderer {
         }
     }
 
+    // ============== ETIQUETA SOBRE LA CABEZA ==============
+
+    private static final float LABEL_TEXT_SIZE = 13f;
+    private static final float LABEL_PADDING = 5f;
+    private static final float LABEL_GAP = 6f;
+    /** Emoticones que la cara del ganso ya expresa: no hace falta escribirlos. */
+    private static final java.util.Set<String> FACE_EMOTICONS = new java.util.HashSet<>(
+            java.util.Arrays.asList(":)", ":D", ":(", ">:)", "?", "!", "!!!", "...", "~",
+                    "v", "^", "<3", "T_T", "X_X", "^_^"));
+
+    private final Paint labelTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint labelFillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final RectF labelRect = new RectF();
+
+    /** Texto corto de una reacción ("¡EVOLUCIONÓ!", "Nv.2!"), en una etiqueta que se desvanece. */
+    private void renderLabel(Canvas canvas, GooseModel body, GooseTouchHandler touchHandler) {
+        if (body == null || touchHandler == null) return;
+        String text = touchHandler.getCurrentEmoji();
+        if (text.isEmpty() || FACE_EMOTICONS.contains(text.trim())) return;
+
+        float progress = touchHandler.getEmojiProgress();
+        float alpha = progress < 0.7f ? 1f : (1f - progress) / 0.3f;
+        float rise = progress * 8f;
+
+        labelTextPaint.setTextSize(LABEL_TEXT_SIZE);
+        labelTextPaint.setTextAlign(Paint.Align.CENTER);
+        labelTextPaint.setFakeBoldText(true);
+        float width = labelTextPaint.measureText(text);
+        float cx = body.headX;
+        float bottom = body.minY - LABEL_GAP - rise;
+        labelRect.set(cx - width / 2f - LABEL_PADDING, bottom - LABEL_TEXT_SIZE - LABEL_PADDING,
+                cx + width / 2f + LABEL_PADDING, bottom + LABEL_PADDING * 0.6f);
+
+        int a = Math.round(alpha * 235f);
+        labelFillPaint.setColor(Color.argb(a, 255, 255, 255));
+        canvas.drawRoundRect(labelRect, 8f, 8f, labelFillPaint);
+        labelTextPaint.setColor(Color.argb(Math.round(alpha * 255f), 38, 38, 46));
+        canvas.drawText(text, cx, bottom - 1f, labelTextPaint);
+    }
+
     // ============== THOUGHT BUBBLE ==============
 
     private static final float THOUGHT_TEXT_SIZE = 15f;
@@ -521,6 +460,7 @@ public class GooseRenderer {
     private static final float THOUGHT_CORNER_RADIUS = 10f;
     private static final float THOUGHT_OFFSET_X = 38f;
     private static final float THOUGHT_GAP_ABOVE_GOOSE = 62f;
+    private static final float THOUGHT_BODY_GAP = 8f;
     private static final float THOUGHT_SCREEN_MARGIN = 6f;
     private static final int THOUGHT_MAX_LINES = 5;
     private static final String THOUGHT_ELLIPSIS = "…";
@@ -595,7 +535,7 @@ public class GooseRenderer {
     /**
      * Render the thought bubble showing what the goose is thinking.
      */
-    private void renderThoughtBubble(Canvas canvas, Vec2 position,
+    private void renderThoughtBubble(Canvas canvas, Vec2 position, float bodyTop, float bodyBottom,
                                      int worldWidth, int worldHeight) {
         String thought = TheGoose.getCurrentThought();
         if (thought == null || thought.isEmpty()) return;
@@ -620,10 +560,10 @@ public class GooseRenderer {
         if (!isOnRight) {
             left = position.x - THOUGHT_OFFSET_X - width;
         }
-        float top = position.y - THOUGHT_GAP_ABOVE_GOOSE - height;
+        float top = bodyTop - THOUGHT_BODY_GAP - height;
         boolean isAbove = top >= THOUGHT_SCREEN_MARGIN;
         if (!isAbove) {
-            top = position.y + THOUGHT_GAP_ABOVE_GOOSE;
+            top = bodyBottom + THOUGHT_BODY_GAP;
         }
         left = MathUtil.clamp(left, THOUGHT_SCREEN_MARGIN,
                 Math.max(THOUGHT_SCREEN_MARGIN, worldWidth - THOUGHT_SCREEN_MARGIN - width));

@@ -23,18 +23,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 public class MainActivity extends AppCompatActivity {
     private MaterialToolbar DefToolBar;
     private Switch overlaySwitch;
-    private Switch EnableMods;
     private Switch SilenceSounds;
-    private Switch Task_CanAttackMouse;
-    private Switch AttackRandomly;
-    private Switch UseCustomColors;
     private Switch ShowShadow;
-    private EditText GooseDefaultWhite;
-    private EditText GooseDefaultOrange;
-    private EditText GooseDefaultOutline;
-    private EditText MinWanderingTimeSeconds;
-    private EditText MaxWanderingTimeSeconds;
-    private EditText FirstWanderTimeSeconds;
     private EditText DrawSize;
     private MaterialButton SaveConfig;
     private MaterialButton Update;
@@ -68,18 +58,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         DefToolBar = findViewById(R.id.DefToolBar);
         overlaySwitch = findViewById(R.id.overlaySwitch);
-        EnableMods = findViewById(R.id.EnableMods);
         SilenceSounds = findViewById(R.id.SilenceSounds);
-        Task_CanAttackMouse = findViewById(R.id.TaskCanAttackMouse);
-        AttackRandomly = findViewById(R.id.AttackRandomly);
-        UseCustomColors = findViewById(R.id.UseCustomColors);
         ShowShadow = findViewById(R.id.ShowShadow);
-        GooseDefaultWhite = findViewById(R.id.GooseDefaultWhite);
-        GooseDefaultOrange = findViewById(R.id.GooseDefaultOrange);
-        GooseDefaultOutline = findViewById(R.id.GooseDefaultOutline);
-        MinWanderingTimeSeconds = findViewById(R.id.MinWanderingTimeSeconds);
-        MaxWanderingTimeSeconds = findViewById(R.id.MaxWanderingTimeSeconds);
-        FirstWanderTimeSeconds = findViewById(R.id.FirstWanderTimeSeconds);
         DrawSize = findViewById(R.id.DrawSize);
         SaveConfig = findViewById(R.id.SaveConfig);
         Update = findViewById(R.id.Update);
@@ -160,7 +140,6 @@ public class MainActivity extends AppCompatActivity {
         Update.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                updateConfigWithColor();
             }
         });
 
@@ -378,18 +357,8 @@ public class MainActivity extends AppCompatActivity {
             Properties prop = new Properties();
 
             // Existing config
-            prop.put("EnableMods", capitalizeFirst(String.valueOf(EnableMods.isChecked())));
             prop.put("SilenceSounds", capitalizeFirst(String.valueOf(SilenceSounds.isChecked())));
-            prop.put("Task_CanAttackMouse", capitalizeFirst(String.valueOf(Task_CanAttackMouse.isChecked())));
-            prop.put("AttackRandomly", capitalizeFirst(String.valueOf(AttackRandomly.isChecked())));
-            prop.put("UseCustomColors", capitalizeFirst(String.valueOf(UseCustomColors.isChecked())));
             prop.put("ShowShadow", capitalizeFirst(String.valueOf(ShowShadow.isChecked())));
-            prop.put("GooseDefaultWhite", GooseDefaultWhite.getText().toString());
-            prop.put("GooseDefaultOrange", GooseDefaultOrange.getText().toString());
-            prop.put("GooseDefaultOutline", GooseDefaultOutline.getText().toString());
-            prop.put("MinWanderingTimeSeconds", MinWanderingTimeSeconds.getText().toString());
-            prop.put("MaxWanderingTimeSeconds", MaxWanderingTimeSeconds.getText().toString());
-            prop.put("FirstWanderTimeSeconds", FirstWanderTimeSeconds.getText().toString());
             prop.put("DrawSize", DrawSize.getText().toString());
 
             prop.put("TouchableEnabled", capitalizeFirst(String.valueOf(isTouchable)));
@@ -478,37 +447,17 @@ public class MainActivity extends AppCompatActivity {
             }
             PetConfigFile ca = new PetConfigFile();
             ca.load(new File(ConfigFilePath));
-            EnableMods.setChecked(string2boolean(ca.get("EnableMods")));
             SilenceSounds.setChecked(string2boolean(ca.get("SilenceSounds")));
-            Task_CanAttackMouse.setChecked(string2boolean(ca.get("Task_CanAttackMouse")));
-            AttackRandomly.setChecked(string2boolean(ca.get("AttackRandomly")));
-            UseCustomColors.setChecked(string2boolean(ca.get("UseCustomColors")));
             ShowShadow.setChecked(string2boolean(ca.get("ShowShadow")));
             TheGoose.setShowShadow(ShowShadow.isChecked());
             // Set EditText contents
-            setEditTextContent(GooseDefaultWhite, ca.get("GooseDefaultWhite"));
-            setEditTextContent(GooseDefaultOrange, ca.get("GooseDefaultOrange"));
-            setEditTextContent(GooseDefaultOutline, ca.get("GooseDefaultOutline"));
-            setEditTextContent(MinWanderingTimeSeconds, ca.get("MinWanderingTimeSeconds"));
-            setEditTextContent(MaxWanderingTimeSeconds, ca.get("MaxWanderingTimeSeconds"));
-            setEditTextContent(FirstWanderTimeSeconds, ca.get("FirstWanderTimeSeconds"));
             setEditTextContent(DrawSize, ca.get("DrawSize"));
 
-            updateConfigWithColor();
 
             Utils.showToast(MainActivity.this, "Configuration loaded successfully.");
         } catch (Exception e) {
             e.printStackTrace();
             showErrorAlert(e);
-        }
-    }
-
-    public void updateConfigWithColor() {
-        if (UseCustomColors.isChecked()) {
-            TheGoose.BodyColor = Utils.parseColor(GooseDefaultWhite.getText().toString());
-            TheGoose.FootColor = Utils.parseColor(GooseDefaultOrange.getText().toString());
-            TheGoose.MouthColor = Utils.parseColor(GooseDefaultOrange.getText().toString());
-            TheGoose.OutLineColor = Utils.parseColor(GooseDefaultOutline.getText().toString());
         }
     }
 
@@ -624,18 +573,8 @@ public class MainActivity extends AppCompatActivity {
     public void saveConfigFile() {
         try {
             Properties prop = new Properties();
-            prop.put("EnableMods", capitalizeFirst(String.valueOf(EnableMods.isChecked())));
             prop.put("SilenceSounds", capitalizeFirst(String.valueOf(SilenceSounds.isChecked())));
-            prop.put("Task_CanAttackMouse", capitalizeFirst(String.valueOf(Task_CanAttackMouse.isChecked())));
-            prop.put("AttackRandomly", capitalizeFirst(String.valueOf(AttackRandomly.isChecked())));
-            prop.put("UseCustomColors", capitalizeFirst(String.valueOf(UseCustomColors.isChecked())));
             prop.put("ShowShadow", capitalizeFirst(String.valueOf(ShowShadow.isChecked())));
-            prop.put("GooseDefaultWhite", GooseDefaultWhite.getText().toString());
-            prop.put("GooseDefaultOrange", GooseDefaultOrange.getText().toString());
-            prop.put("GooseDefaultOutline", GooseDefaultOutline.getText().toString());
-            prop.put("MinWanderingTimeSeconds", MinWanderingTimeSeconds.getText().toString());
-            prop.put("MaxWanderingTimeSeconds", MaxWanderingTimeSeconds.getText().toString());
-            prop.put("FirstWanderTimeSeconds", FirstWanderTimeSeconds.getText().toString());
             prop.put("DrawSize", DrawSize.getText().toString());
             PetConfigFile.saveMerged(new File(ConfigFilePath), prop);
         } catch (Exception e) {

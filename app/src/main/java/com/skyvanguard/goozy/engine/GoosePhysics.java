@@ -118,7 +118,7 @@ public class GoosePhysics {
 
     private final Footprint[] footMarks = new Footprint[64];
     private int footMarkIndex = 0;
-    private double trackMudEndTime = -1f;
+    private double muddyFeetUntil = -1f;
 
     // ============== CALLBACKS ==============
 
@@ -170,7 +170,7 @@ public class GoosePhysics {
     public float getCurrentAcceleration() { return currentAcceleration; }
     public float getStepTime() { return stepTime; }
     public Footprint[] getFootMarks() { return footMarks; }
-    public double getTrackMudEndTime() { return trackMudEndTime; }
+    public double getMuddyFeetUntil() { return muddyFeetUntil; }
 
     public PhysicsState getState() { return state; }
     public SurfaceType getSurface() { return currentSurface; }
@@ -193,7 +193,7 @@ public class GoosePhysics {
     public void setVelocity(Vec2 vel) { velocity = vel; }
     public void setTargetPos(Vec2 target) { targetPos = target; }
     public void setDirection(float dir) { direction = dir; }
-    public void setTrackMudEndTime(double time) { trackMudEndTime = time; }
+    public void setMuddyFeetUntil(double time) { muddyFeetUntil = time; }
     public void setSurface(SurfaceType surface) { currentSurface = surface; }
     public void setBounceOnEdges(boolean bounce) { bounceOnEdges = bounce; }
     public void setCanMove(boolean canMove) { this.canMove = canMove; }
@@ -662,7 +662,7 @@ public class GoosePhysics {
      */
     /** Estampa una huella de barro si el ganso todavía tiene las patas embarradas. */
     public void stampFootprint(float x, float y) {
-        if (Time.time < trackMudEndTime) addFootMark(new Vec2(x, y));
+        if (Time.time < muddyFeetUntil) addFootMark(new Vec2(x, y));
     }
 
     private void addFootMark(Vec2 markPos) {

@@ -1,18 +1,8 @@
 <resources>
     <string name="app_name">Goozy</string>
     <string name="Config">Config</string>
-    <string name="EnableMods">EnableMods</string>
     <string name="SilenceSounds">SilenceSounds</string>
-    <string name="Task_CanAttackMouse">Task_CanAttackMouse</string>
-    <string name="AttackRandomly">AttackRandomly</string>
-    <string name="UseCustomColors">UseCustomColors</string>
     <string name="ShowShadow">ShowShadow</string>
-    <string name="GooseDefaultWhite">GooseDefaultWhite</string>
-    <string name="GooseDefaultOrange">GooseDefaultOrange</string>
-    <string name="GooseDefaultOutline">GooseDefaultOutline</string>
-    <string name="MinWanderingTimeSeconds">MinWanderingTimeSeconds</string>
-    <string name="MaxWanderingTimeSeconds">MaxWanderingTimeSeconds</string>
-    <string name="FirstWanderTimeSeconds">FirstWanderTimeSeconds</string>
     <string name="DrawSize">DrawSize</string>
     <string name="GoozyEnabled">Goozy is out</string>
     <string name="GoozyDisabled">Goozy went to sleep</string>

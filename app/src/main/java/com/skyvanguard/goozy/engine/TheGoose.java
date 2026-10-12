@@ -428,7 +428,7 @@ public class TheGoose implements
         // AI
         ai = new GooseAI();
         ai.setCallback(instance);
-        ai.initTaskPicker(ca);
+        ai.initTaskPicker();
 
         // Local AI/LLM System
         GooseLLM.initialize(ctx);
@@ -637,11 +637,21 @@ public class TheGoose implements
 
     /** Centro de lo que ocupa el ganso en pantalla, en unidades de mundo. */
     public static float getBodyCenterX() {
-        return body != null ? (body.minX + body.maxX) * 0.5f : getGoosePos().x;
+        return hasBodyLayout() ? (body.minX + body.maxX) * 0.5f : getGoosePos().x;
     }
 
     public static float getBodyCenterY() {
-        return body != null ? (body.minY + body.maxY) * 0.5f : getGoosePos().y;
+        return hasBodyLayout() ? (body.minY + body.maxY) * 0.5f : getGoosePos().y;
+    }
+
+    /** Mitad del lado mayor de lo que ocupa el ganso, en unidades de mundo (0 si aún no hay). */
+    public static float getBodyHalfExtent() {
+        if (!hasBodyLayout()) return 0f;
+        return Math.max(body.maxX - body.minX, body.maxY - body.minY) * 0.5f;
+    }
+
+    private static boolean hasBodyLayout() {
+        return body != null && body.hasLayout;
     }
 
     public static boolean isMiniGamePlaying() {
@@ -865,12 +875,14 @@ public class TheGoose implements
 
         boolean extendNeck = ai.isOverrideExtendNeck() || physics.getCurrentSpeed() >= 200f;
         Vec2 pos = physics.getPosition();
+        boolean carried = physics.getState() == GoosePhysics.PhysicsState.DRAGGED;
         body.update(Time.deltaTime, pos.x, pos.y, physics.getDirection(),
-                physics.getVerticalPosition(), extendNeck ? 1f : 0f, 0f);
+                physics.getVerticalPosition(), extendNeck ? 1f : 0f, 0f, carried);
 
         int steps = body.pollSteps(stepBuffer);
         for (int i = 0; i < steps; i++) {
             physics.stampFootprint(stepBuffer[i * 2], stepBuffer[i * 2 + 1]);
+            Sound.step();
         }
     }
 
@@ -896,7 +908,7 @@ public class TheGoose implements
             case Sleeping: setLook(BodyState.Pose.SLEEPING, BodyState.Expression.SLEEPY); break;
             case Eating: setLook(BodyState.Pose.EATING, BodyState.Expression.JOY); break;
             case Playing:
-            case TrackMud: setLook(BodyState.Pose.EXCITED, BodyState.Expression.JOY); break;
+            case MudDash: setLook(BodyState.Pose.EXCITED, BodyState.Expression.JOY); break;
             case Happy: setLook(BodyState.Pose.EXCITED, BodyState.Expression.HAPPY); break;
             case Sad: setLook(BodyState.Pose.RELAXED, BodyState.Expression.SAD); break;
             case Seeking: setLook(BodyState.Pose.ALERT, BodyState.Expression.SURPRISED); break;

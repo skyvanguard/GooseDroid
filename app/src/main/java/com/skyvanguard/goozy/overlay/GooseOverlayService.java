@@ -60,6 +60,7 @@ public class GooseOverlayService extends Service implements GooseLayerView.Host 
     /** Fracción del margen que el ganso puede recorrer antes de recentrar la ventana. */
     private static final float RECENTER_MARGIN_FRACTION = 0.5f;
     private static final int MIN_GOOSE_WINDOW_PX = 120;
+    private static final float GOOSE_WINDOW_SHRINK_RATIO = 0.7f;
     /**
      * Android 12+ bloquea los toques que atraviesan un overlay no táctil más opaco
      * que esto.
@@ -339,9 +340,14 @@ public class GooseOverlayService extends Service implements GooseLayerView.Host 
     }
 
     private int computeGooseWindowSize() {
-        float halfExtentPx = GOOSE_HALF_EXTENT_UNITS * TheGoose.DrawScale * TheGoose.WorldScale;
-        int size = Math.round(2f * (halfExtentPx + GOOSE_WINDOW_MARGIN_PX));
-        return Math.max(MIN_GOOSE_WINDOW_PX, size);
+        float bodyHalf = TheGoose.getBodyHalfExtent();
+        float halfUnits = bodyHalf > 0f ? bodyHalf : GOOSE_HALF_EXTENT_UNITS * TheGoose.DrawScale;
+        int needed = Math.max(MIN_GOOSE_WINDOW_PX,
+                Math.round(2f * (halfUnits * TheGoose.WorldScale + GOOSE_WINDOW_MARGIN_PX)));
+        // Crece enseguida (salto, cuello estirado) y se achica solo con holgura: menos relayouts
+        int current = gooseParams != null ? gooseParams.width : 0;
+        if (needed > current || needed < current * GOOSE_WINDOW_SHRINK_RATIO) return needed;
+        return current;
     }
 
     /** Mantiene la ventana chica sobre el ganso. */
