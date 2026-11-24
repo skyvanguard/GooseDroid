@@ -14,7 +14,7 @@ Guía extendida: `CLAUDE.md` (en inglés). Sin CI en el repo.
   apunte a otro. Si el build falla por versión de Java, que haya JDK 21 instalado.
 - `local.properties` (no versionada): `sdk.dir` con barras forward; opcionalmente
   `keystore.path` / `keystore.password` / `keystore.alias` / `keystore.alias_password`.
-  Sin esos, `assembleRelease` firma con la clave de debug.
+  Sin keystore, `assembleRelease` genera `app-release-unsigned.apk` (sin firmar).
 - Core library desugaring activado (el SDK de Anthropic usa `java.time`);
   no tocar `coreLibraryDesugaringEnabled`.
 
