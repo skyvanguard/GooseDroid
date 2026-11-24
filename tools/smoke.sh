@@ -5,7 +5,7 @@
 set -u
 export MSYS_NO_PATHCONV=1
 ADB="${ADB:-/c/Android/sdk/platform-tools/adb.exe}"
-PKG=com.cfks.goosedroid
+PKG=com.skyvanguard.goozy
 APK=app/build/outputs/apk/debug/app-debug.apk
 OUT="${1:-build/smoke}"
 mkdir -p "$OUT"
@@ -20,7 +20,7 @@ sleep 3
 
 # Localizar el switch principal y encenderlo si está apagado
 "$ADB" shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1
-NODE=$("$ADB" shell cat /sdcard/ui.xml | grep -o '<node[^>]*id/GooseDroid"[^>]*>')
+NODE=$("$ADB" shell cat /sdcard/ui.xml | grep -o '<node[^>]*id/overlaySwitch"[^>]*>')
 CHECKED=$(echo "$NODE" | grep -o 'checked="[a-z]*"' | cut -d'"' -f2)
 read X1 Y1 X2 Y2 <<<"$(echo "$NODE" | grep -o 'bounds="[^"]*"' | tr -c '0-9' ' ')"
 [ -z "${X2:-}" ] && { echo "FALLO: no se encontró el switch principal"; exit 1; }

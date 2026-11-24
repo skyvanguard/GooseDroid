@@ -1,4 +1,4 @@
-# Auditoría GooseDroid — 2026-09-27
+# Auditoría Goozy — 2026-09-27
 
 Revisión por lectura de código de los ~21.000 LOC de `app/src/main/java`. **Nada se compiló ni se ejecutó**: la máquina donde se hizo no tiene Android SDK. Todo lo que dice "confirmado" significa confirmado leyendo el código; lo que depende del comportamiento en un teléfono está marcado como "a confirmar en dispositivo".
 
@@ -35,7 +35,7 @@ Varios bugs se tapan entre sí: mientras el ganso está trabado en un evento (1.
 | 2.4 | Estado estático que sobrevive al reinicio | `TheGoose`, `GooseEasterEggs`, `GooseDreams`, `MiniGames` | Al prender por segunda vez se mezcla estado viejo con nuevo. Los logros se re-desbloquean con festejo cada vez. |
 | 2.5 | Bucle infinito (la app se cuelga) | `GooseEasterEggs.java:89`, `:355-357` | Cada `init()` agrega otro `NONE` a una lista estática. Con `[NONE, NONE]` el `do/while` no sale nunca. Se dispara con un gesto de círculo tras reiniciar el overlay. |
 | 2.6 | Modos secretos que nunca se apagan | `GooseEasterEggs.java:376` | `deactivateMode()` no tiene llamadores. Gigante, turbo y dorado se acumulan; el dorado pisa el color elegido por el usuario y se guarda en disco. |
-| 2.7 | El audio muere tras `onTrimMemory` | `GooseDroidApplication.java:183-215` | Libera todo el sonido y nadie lo reinicializa. *(flujo confirmado; la frecuencia real depende de Android)* |
+| 2.7 | El audio muere tras `onTrimMemory` | `GoozyApplication.java:183-215` | Libera todo el sonido y nadie lo reinicializa. *(flujo confirmado; la frecuencia real depende de Android)* |
 | 2.8 | Limpieza de audio rota | `Sound.java:143-155` | Llama `isPlaying()` sobre reproductores ya liberados (lanza excepción) y borra de la lista mientras la recorre. Se activa a partir del sonido 11. Desde un `Handler` nadie la atrapa: crash. |
 | 2.9 | Excepciones tragadas en el loop | `GooseView.java:136-142` | Si `Tick()` falla, ese frame no se dibuja y solo queda un log. |
 

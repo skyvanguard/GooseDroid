@@ -22,11 +22,11 @@ if (keystoreFilepath) {
 }
 
 android {
-    namespace 'com.cfks.goosedroid'
+    namespace 'com.skyvanguard.goozy'
     compileSdk 36
 
     defaultConfig {
-        applicationId "com.cfks.goosedroid"
+        applicationId "com.skyvanguard.goozy"
         minSdk 24
         targetSdk 36
         versionCode 5
@@ -73,9 +73,8 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation libs.appcompat
-    implementation libs.material // 或者更高版本
+    implementation libs.material
 
     implementation libs.activity
     implementation libs.constraintlayout

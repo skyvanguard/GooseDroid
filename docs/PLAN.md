@@ -1,4 +1,4 @@
-# Plan de implementación — GooseDroid como tamagotchi con IA
+# Plan de implementación — Goozy como tamagotchi con IA
 
 Fecha: 2026-09-27 · Rama de trabajo: `estabilizacion` · Hallazgos de origen: [auditoria-2026-09-27.md](auditoria-2026-09-27.md)
 
@@ -180,7 +180,7 @@ El modelo responde un JSON acotado:
 | Diario | Cada noche escribe cómo fue su día | — |
 | Personalidad que evoluciona | Los rasgos cambian el tono de todo lo que dice | — |
 | Sueños | Al dormir, sueña con lo que pasó | — |
-| Notas en pantalla | Deja mensajes generados, como el Desktop Goose original | — |
+| Notas en pantalla | Deja mensajes generados por la IA | — |
 | Voz | Lee sus frases en voz alta (TTS del sistema) | — |
 | Reacciona al teléfono | Batería, carga, hora, auriculares, pantalla | — |
 | Opina de tus notificaciones | Comenta lo que llega (opcional, apagado por defecto) | Acceso a notificaciones |

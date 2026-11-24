@@ -10,7 +10,7 @@
 set -u
 export MSYS_NO_PATHCONV=1
 ADB="${ADB:-/c/Android/sdk/platform-tools/adb.exe}"
-PKG=com.cfks.goosedroid
+PKG=com.skyvanguard.goozy
 
 node_for() {
   "$ADB" shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1
