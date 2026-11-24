@@ -93,7 +93,8 @@ MainActivity ──▶ overlay/GooseOverlayService (foreground service, type spe
 ## Convenciones
 
 - Commits convencionales con mensajes en español (`feat:`, `fix(seguridad):`,
-  `chore:`). Ramas: `main` y `goozy` (la de trabajo actual).
+  `chore:`). Rama principal: `main`; cada cambio va en una rama corta con PR
+  (el CI tiene que pasar) y la rama se borra al mergear.
 - Comentarios en español (algunos archivos viejos todavía en inglés).
 - Dependencias: `gradle/libs.versions.toml` + algunas coordenadas directas en
   `app/build.gradle` (litertlm, anthropic, security-crypto, desugar).
