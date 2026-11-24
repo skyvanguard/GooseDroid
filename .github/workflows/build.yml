@@ -11,10 +11,10 @@ on:
 permissions:
   contents: read
 
-# Un push nuevo a la misma rama o PR cancela la corrida anterior
+# En un PR, un push nuevo cancela la corrida anterior; en main corren todas
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
@@ -42,6 +42,14 @@ jobs:
 
       - name: Unit tests
         run: ./gradlew testDebugUnitTest --stacktrace
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: app/build/reports/tests/
+          retention-days: 7
 
       - name: Build Debug APK
         run: ./gradlew assembleDebug --stacktrace
