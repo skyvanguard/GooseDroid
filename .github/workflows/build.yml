@@ -1,15 +1,30 @@
 name: Build APK
 
 on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
+
+# Solo lectura: el job compila y sube el APK, no escribe en el repo
+permissions:
+  contents: read
+
+# Un push nuevo a la misma rama o PR cancela la corrida anterior
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v4
 
+      # El daemon de Gradle pide JDK 21 (gradle/gradle-daemon-jvm.properties)
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -21,8 +36,12 @@ jobs:
         with:
           packages: platforms;android-36 build-tools;36.0.0 platform-tools
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      # Caché de Gradle y validación de gradle-wrapper.jar
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Unit tests
+        run: ./gradlew testDebugUnitTest --stacktrace
 
       - name: Build Debug APK
         run: ./gradlew assembleDebug --stacktrace
@@ -30,5 +49,7 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: GooseDroid-APK
+          name: Goozy-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
