@@ -42,15 +42,10 @@ android {
             shrinkResources true
             zipAlignEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            println("WITH -> buildTypes -> release: using default key")
-        }
-
-        debug {
-            println("WITH -> buildTypes -> debug: using default key")
         }
     }
 
-    // Solo configurar signing si existe keystore personalizado
+    // El release se firma solo con keystore propio; sin el sale app-release-unsigned.apk
     if (keyfile.exists()) {
         signingConfigs {
             release {
@@ -62,6 +57,8 @@ android {
         }
         buildTypes.release.signingConfig signingConfigs.release
         println("Custom keystore found, using it for release")
+    } else if (keystoreFilepath) {
+        logger.warn("keystore.path apunta a '${keyfile.absolutePath}', que no existe: el release sale sin firmar")
     }
     
     compileOptions {
