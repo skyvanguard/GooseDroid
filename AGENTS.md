@@ -4,7 +4,8 @@ Mascota virtual en Android: ganso dibujado 100% con Canvas
 (sin sprites) que vive como overlay del sistema, con "cerebro" LLM enchufable.
 App Java de un solo módulo (`:app`), paquete `com.skyvanguard.goozy`, Java 11,
 minSdk 24, compile/target 36, AGP 8.12.0, Gradle 8.13, version 1.0.4 (versionCode 5).
-Guía extendida: `CLAUDE.md` (en inglés). Sin CI en el repo.
+Guía extendida: `CLAUDE.md` (en inglés). CI: `.github/workflows/build.yml` corre
+`testDebugUnitTest` y `assembleDebug` en cada push y PR a `main` y sube el APK debug.
 
 ## Build
 
@@ -12,7 +13,8 @@ Guía extendida: `CLAUDE.md` (en inglés). Sin CI en el repo.
   bytecode de Java 21. `gradle/gradle-daemon-jvm.properties` fija
   `toolchainVersion=21`, así Gradle elige un JDK 21 instalado aunque `JAVA_HOME`
   apunte a otro. Si el build falla por versión de Java, que haya JDK 21 instalado.
-- `local.properties` (no versionada): `sdk.dir` con barras forward; opcionalmente
+- `local.properties` (no versionada, opcional; sin ella el SDK sale de `ANDROID_HOME`,
+  como en CI): `sdk.dir` con barras forward; opcionalmente
   `keystore.path` / `keystore.password` / `keystore.alias` / `keystore.alias_password`.
   Sin keystore, `assembleRelease` genera `app-release-unsigned.apk` (sin firmar).
 - Core library desugaring activado (el SDK de Anthropic usa `java.time`);

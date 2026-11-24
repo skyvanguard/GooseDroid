@@ -10,8 +10,11 @@ def keystoreAliasPSW = ''
 def keyfile = file('s.keystore.temp')
 
 Properties properties = new Properties()
-// local.properties file in the root director
-properties.load(project.rootProject.file('local.properties').newDataInputStream())
+// local.properties es opcional: no se versiona y en CI no existe (el SDK llega por ANDROID_HOME)
+def localProperties = project.rootProject.file('local.properties')
+if (localProperties.exists()) {
+    localProperties.withInputStream { properties.load(it) }
+}
 keystoreFilepath = properties.getProperty("keystore.path")
 
 if (keystoreFilepath) {

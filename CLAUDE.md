@@ -12,7 +12,7 @@ Goozy is an Android virtual pet (tamagotchi-style). An animated goose lives as a
 ## Build Requirements
 
 - **The Gradle daemon must run on JDK 21**: `litertlm-android` ships Java 21 bytecode. `gradle/gradle-daemon-jvm.properties` pins `toolchainVersion=21`, so Gradle picks an installed JDK 21 automatically even if `JAVA_HOME` points to JDK 17.
-- Android SDK path goes in `local.properties` (`sdk.dir=C:/Android/sdk` on the dev machine — forward slashes).
+- Android SDK path goes in `local.properties` (`sdk.dir=C:/Android/sdk` on the dev machine — forward slashes). The file is optional: without it the SDK comes from `ANDROID_HOME`, as in CI.
 - Core library desugaring is enabled (the Anthropic SDK uses `java.time`).
 
 ## Build & Test Commands
@@ -25,6 +25,8 @@ Goozy is an Android virtual pet (tamagotchi-style). An animated goose lives as a
 ```
 
 Release signing reads `keystore.path`, `keystore.password`, `keystore.alias`, `keystore.alias_password` from `local.properties`.
+
+CI (`.github/workflows/build.yml`) runs `testDebugUnitTest` and `assembleDebug` on every push and PR to `main` and uploads the debug APK.
 
 ### Emulator tooling (`tools/`)
 
