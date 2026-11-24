@@ -1,6 +1,6 @@
-# GooseDroid 🪿
+# Goozy 🪿
 
-An Android virtual pet inspired by [Desktop Goose](https://samperson.itch.io/desktop-goose). A procedurally animated goose lives as a screen overlay — no sprites, everything is drawn with Canvas.
+A chaotic, caring goose that lives **on top of your phone screen**. Goozy walks over your apps, honks, steals your attention and needs your care like a tamagotchi — and its words and decisions come from a language model you choose, which can run entirely on your phone. No sprites: the goose is drawn procedurally with Canvas, and every sound is synthesized by [`tools/gen_sounds.py`](tools/gen_sounds.py).
 
 ## Features
 
@@ -43,14 +43,13 @@ An Android virtual pet inspired by [Desktop Goose](https://samperson.itch.io/des
 ## Architecture
 
 ```
-TheGoose (Central coordinator)
+engine/TheGoose (central coordinator)
 ├── GooseAI             — Modular behavior system with memory and routines
 ├── GooseBehaviorTree   — Priority-based: critical needs → interaction → personality → idle
 ├── GoosePhysics        — Movement, jumping, bouncing, friction, surface types
 ├── GooseRig            — Skeletal system: bones, expressions, poses
 ├── GooseRenderer       — Procedural drawing, particles, trails, glow
 ├── GooseTouchHandler   — Gesture recognition (tap, pet, drag, throw, boop, tickle...)
-├── GooseLLM            — On-device template-based thought generation
 ├── GooseVisualEffects  — Particle effects (hearts, sparkles, confetti, dust)
 ├── GooseSoundEffects   — Honks, footsteps, emotional sounds
 ├── GooseDreams         — Sleep thought bubbles based on daily experiences
@@ -91,7 +90,7 @@ Pet Systems:
 | **UI** | Android Canvas (procedural rendering) |
 | **AI** | Behavior tree + pluggable LLM brain (LiteRT-LM, OpenAI-compatible, Anthropic SDK) |
 | **Physics** | Custom physics engine with IK |
-| **Audio** | SoundPool + MediaPlayer |
+| **Audio** | SoundPool with synthesized sounds |
 
 ## Build
 
@@ -138,7 +137,7 @@ The APK will be generated in `app/build/outputs/apk/`.
 
 ## Troubleshooting
 
-1. **Goose not appearing**: Check that overlay permission is granted in Settings > Apps > GooseDroid > Display over other apps
+1. **Goose not appearing**: Check that overlay permission is granted in Settings > Apps > Goozy > Display over other apps
 2. **Touch not working**: Enable "Touchable" option in the app settings
 3. **App crashes**: Create an issue with logs from the error dialog
 

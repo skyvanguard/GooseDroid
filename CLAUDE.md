@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-GooseDroid is an Android virtual pet (tamagotchi-style) based on Desktop Goose. An animated goose lives as a screen overlay with AI behaviors, touch interactions, needs, evolution, mini-games and procedural rendering (no sprites — all Canvas draw calls). Its words and decisions come from a pluggable language-model "brain" (templates, on-device model, local server or cloud API).
+Goozy is an Android virtual pet (tamagotchi-style). An animated goose lives as a screen overlay with AI behaviors, touch interactions, needs, evolution, mini-games and procedural rendering (no sprites — all Canvas draw calls). Its words and decisions come from a pluggable language-model "brain" (templates, on-device model, local server or cloud API).
 
-**Package**: `com.cfks.goosedroid` | **Java 11 source** | **Min SDK 24** | **Target/compile SDK 36**
+**Package**: `com.skyvanguard.goozy` | **Java 11 source** | **Min SDK 24** | **Target/compile SDK 36**
 **AGP**: 8.12.0 | **Gradle**: 8.13 | **Version**: 1.0.4 (versionCode 5)
 
 ## Build Requirements
@@ -70,8 +70,9 @@ PetRepository  — single source of truth for saved pet state (config.ini, merge
 
 ## Code Conventions
 
-- Mixed Chinese/English comments in the original files; Spanish comments in newer files.
-- `GooseDesktop/` holds the goose engine; root package has activities and pet systems; `brain/` and `overlay/` are the new layers.
+- Comments in Spanish (some older files still have English ones).
+- `engine/` holds the goose engine, `core/` the small math/time helpers (`Vec2`, `MathUtil`, `ShuffleBag`, `Footprint`, `Time`); root package has activities and pet systems; `brain/` and `overlay/` are the AI and overlay layers.
+- Sounds are synthesized by `tools/gen_sounds.py` into `app/src/main/assets/sound/`; regenerate instead of adding recorded audio.
 - Dependencies via `gradle/libs.versions.toml` plus a few direct coordinates in `app/build.gradle`.
 - Unit tests are plain JVM tests (JUnit 4, `org.json` and OkHttp `MockWebServer` on the test classpath); keep Android types out of classes you want to unit test.
 

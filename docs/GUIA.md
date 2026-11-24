@@ -1,4 +1,4 @@
-# Guía de GooseDroid
+# Guía de Goozy
 
 Un ganso que vive en la pantalla del teléfono, camina por encima de tus apps y hay que cuidar como a un tamagotchi. Lo que dice y decide lo piensa un "cerebro" que podés elegir: frases predefinidas, un modelo de IA dentro del teléfono, uno en tu PC o uno en la nube.
 
@@ -10,7 +10,7 @@ Un ganso que vive en la pantalla del teléfono, camina por encima de tus apps y 
    ```
    El APK queda en `app/build/outputs/apk/debug/app-debug.apk`.
 2. Pasalo al teléfono (cable con `adb install -r app-debug.apk`, o copiándolo) e instalalo.
-3. Abrí GooseDroid, activá el interruptor principal y aceptá el permiso **"Mostrar sobre otras apps"**. Después aceptá el de **notificaciones**.
+3. Abrí Goozy, activá el interruptor principal y aceptá el permiso **"Mostrar sobre otras apps"**. Después aceptá el de **notificaciones**.
 
 Para una versión optimizada (más chica y rápida): `./gradlew assembleRelease`. Necesita una keystore configurada en `local.properties` (`keystore.path`, `keystore.password`, `keystore.alias`, `keystore.alias_password`).
 
@@ -18,10 +18,10 @@ Para una versión optimizada (más chica y rápida): `./gradlew assembleRelease`
 
 HyperOS cierra las apps en segundo plano con mucha agresividad. Sin estos ajustes el ganso desaparece al rato:
 
-- **Ajustes → Apps → GooseDroid → Inicio automático:** activado.
-- **Ajustes → Apps → GooseDroid → Ahorro de batería:** *Sin restricciones*.
-- **Ajustes → Apps → GooseDroid → Otros permisos → "Mostrar ventanas emergentes mientras se ejecuta en segundo plano":** permitido. Sin este permiso, mantener apretado al ganso no abre la ventana para hablarle (desde la notificación sí funciona).
-- En **Apps recientes**, bloqueá GooseDroid con el candado.
+- **Ajustes → Apps → Goozy → Inicio automático:** activado.
+- **Ajustes → Apps → Goozy → Ahorro de batería:** *Sin restricciones*.
+- **Ajustes → Apps → Goozy → Otros permisos → "Mostrar ventanas emergentes mientras se ejecuta en segundo plano":** permitido. Sin este permiso, mantener apretado al ganso no abre la ventana para hablarle (desde la notificación sí funciona).
+- En **Apps recientes**, bloqueá Goozy con el candado.
 
 ## Cuidar al ganso
 

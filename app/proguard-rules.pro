@@ -12,17 +12,14 @@
 -renamesourcefileattribute SourceFile
 
 # Keep the application class and main entry points
--keep public class com.cfks.goosedroid.GooseDroidApplication { *; }
--keep public class com.cfks.goosedroid.MainActivity { *; }
--keep public class com.cfks.goosedroid.CustomizeActivity { *; }
--keep public class com.cfks.goosedroid.ConfigureActivity { *; }
+-keep public class com.skyvanguard.goozy.GoozyApplication { *; }
+-keep public class com.skyvanguard.goozy.MainActivity { *; }
+-keep public class com.skyvanguard.goozy.CustomizeActivity { *; }
 
 # Keep Widget and BroadcastReceivers (required for Android system)
--keep public class com.cfks.goosedroid.PetWidget { *; }
--keep public class com.cfks.goosedroid.PetNotificationManager$NotificationReceiver { *; }
+-keep public class com.skyvanguard.goozy.PetWidget { *; }
+-keep public class com.skyvanguard.goozy.PetNotificationManager$NotificationReceiver { *; }
 
-# Keep View classes (required for custom views referenced from code)
--keep public class com.cfks.goosedroid.GooseView { *; }
 
 # Preserve enums (used in PetNeeds.MoodState, GooseTasks, etc.)
 -keepclassmembers enum * {

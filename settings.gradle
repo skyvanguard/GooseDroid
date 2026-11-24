@@ -26,6 +26,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "GooseDroid"
+rootProject.name = "Goozy"
 
 include(":app")
